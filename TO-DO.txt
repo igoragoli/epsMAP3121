@@ -3,7 +3,7 @@ Functions and Methods
 ---------------------
 1. LU Decomposition function - OK
 2. LU Solver function - OK
-3. Permutation Matrix function
+3. Permutation Matrix function - OK
 4. Check for singularity in LUDecomposition()
 5. Implement Implicit Euler Method
 6. Implement Crank-Nicholson Method
