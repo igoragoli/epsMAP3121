@@ -11,4 +11,6 @@ Functions and Methods
 ---------------------
 Simulations
 ---------------------
-1. Realize tests of "1a Tarefa"
+1. Test method11() on "1a Tarefa"
+2. Test eulerImplicit() on "Um metodo implicito"
+3. Test crankNicholson() on "Um metodo implicito"
