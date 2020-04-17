@@ -8,33 +8,6 @@
 import numpy as np
 
 # =================================
-# Inputs
-# =================================
-
-# ---------------
-# Initial Parameters
-# ---------------
-
-# To model the bar temperature problem, (x,t) will be understood as a (N,M) grid
-# in which xi = i*deltax, i = 0, ..., N and tk = k*deltat, k = 0, ..., M, where
-# deltax = 1/N and deltat = T/M.
-
-T = 1 # Time interval
-N = 10 # Number of intervals in the lenght of the bar, 1
-M = 10 # Number of intervals in the time period, T
-deltax = 1/N
-deltat = T/M
-lbd = deltat/deltax**2 # Lambda
-
-# ---------------
-# Defining the grid
-# ---------------
-
-u = np.zeros((N+1, M+1))
-x = np.linspace(0, 1, N+1)
-t = np.linspace(0, T, M+1)
-
-# =================================
 # Functions and Iterative Methods
 # =================================
 
@@ -51,6 +24,13 @@ def f(t, x, type):
         - type : type of the function, specifies what f(x,t) should be
           used at the function call
     """
+    if type == 0: # Item (a)
+        f = 10*x**2*(x - 1)- 60*x*t + 20*t # OK
+    else if type == 1: # Item (b)
+        f = 1 # item (b) - still undetermined
+    else if type == 2: # Item (c)
+        f = 2 # item (c) - still undetermined
+    return f
 
 def u0(x, type):
     """
@@ -60,6 +40,11 @@ def u0(x, type):
         - type: type of the function, specifies what u0(x) should be
           used at the function call
     """
+    if type == 0: # Items (a) and (c)
+        u0 = 0 # OK
+    else if type == 1: # Item (b)
+        u0 = 1 # item (b) - still undetermined
+    return u0
 
 # g1(t) and g2(t) are Dirichlet boundary conditions, describing the
 # temperature at the bar's extremities.
@@ -71,6 +56,11 @@ def g1(t, type):
         - type : type of the function, specifies what g1(t) should be
           used at the function call
     """
+    if type == 0: # Items (a) and (c)
+        g1 = 0 # OK
+    else if type == 1: # Items (b)
+        g1 = 1 # item (b) - still undetermined
+    return g1
 
 def g2(t, type):
     """
@@ -80,6 +70,11 @@ def g2(t, type):
         - type : type of the function, specifies what g2(t) should be
           used at the function call
     """
+    if type == 0: # Items (a) and (c)
+        g2 = 0 # OK
+    else if type == 1: # Items (b)
+        g2 = 1 # item (b) - still undetermined
+    return g2
 
 def LUDecomposition(A):
     """
@@ -143,18 +138,18 @@ def permutationMatrix(A):
     P = np.eye(n) # Generate the identity matrix
 
     # It's necessary to apply the Gauss method on each row and column
-    
+
     for i in range(0, n):
           greater = A[i][i]   # Defining the initial greater values
           greaterRow = i
 
           for j in range(i+1, n): # This "for" will find the greater value at column "i"
                                   # So it can be swapped for future use in the Gauss method, generating more accurate results
-            
+
             if np.absolute(A[j][i]) > np.absolute(greater):
                                   # If the value at the row "j" is greater than the stored, it's going to refresh
                                   # the greater value, and in which row it is.
-              greater = A[j][i]          
+              greater = A[j][i]
               greaterRow = j
 
           # Now, it's necessary to swap the "i" row with the row that has the greater element in column "i"
@@ -162,7 +157,7 @@ def permutationMatrix(A):
           A[[i, greaterRow]] = A[[greaterRow, i]]
           P[[i, greaterRow]] = P[[greaterRow, i]]
 
-          # And then, just apply the Gauss method for each row "j", starting at column "i + 1" 
+          # And then, just apply the Gauss method for each row "j", starting at column "i + 1"
 
           for j in range(i+1, n):
             m = A[j][i] / A[i][i] # Calculating the multipliers
@@ -175,16 +170,14 @@ def permutationMatrix(A):
 
               if i == k:
                 A[j][k] = 0       # If the element is directly under the diagonal at column "i", it's going to be zero.
-              
+
               elif i != k:
                 A[j][k] -= A[i][k] * m
                                   # If the element is in any column, except "i", it's going to be subtracted by m * A[i][k]
-              else:               
+              else:
                 break # To avoid errors
 
     return(P)   # Since the purpose of this function is to generate the permutation matrix, we will only return it and not the upper triangular matrix A.
-    
-  
 
 def solveLinearSystem(A,b):
     """
@@ -219,12 +212,12 @@ def solveLinearSystem(A,b):
         x[i] = (1/U[i][i])*(y[i] - sum)
 
     return x
-    
+
 # ---------------
 # Iterative Methods
 # ---------------
 
-def method11(u, T, f):
+def method11(u, T, ftype=0):
     """
     Iterative method described by equation (11) in the problem description.
     It calculates the evolution of u(x,t) in time for all (xi,tk) interior
@@ -233,7 +226,7 @@ def method11(u, T, f):
         - u : 2-dimensional array that stores the temperature at each
           position xi and time tk
         - T : time interval
-        - f : f(x,t) function
+        - ftype : f(x,t) function type
     """
     N = u.shape[0] - 1
     M = u.shape[1] - 1
@@ -241,9 +234,10 @@ def method11(u, T, f):
     deltat = T/M
     for k in range(M):
         for i in range(1, N):
-            u[i][k+1] = u[i][k] + deltat*((u[i-1][k] - 2*u[i][k] + u[i+1][k])/deltax**2 + f(i*deltax, k*deltat))
+            u[i][k+1] = u[i][k] + deltat*((u[i-1][k] - 2*u[i][k] + u[i+1][k])/deltax**2 + f(i*deltax, k*deltat, ftype))
+    return u
 
-def implicitEuler(u, f, T, g1, g2):
+def implicitEuler(u, T, ftype=0, g1type=0, g2type=0):
     """
     The implicit Euler method is described by equation (29) in the problem description.
     It calculates the evolution of u(x,t), but the solution in a particular point of the
@@ -252,9 +246,9 @@ def implicitEuler(u, f, T, g1, g2):
         - u : 2-dimensional array that stores the temperature at each
           position xi and time tk
         - T : time interval
-        - f : f(x,t) function
-        - g1 : g1(t) function
-        - g2 : g2(t) function
+        - ftype : f(x,t) function type
+        - g1type : g1(t) function type
+        - g2type : g2(t) function type
     """
     N = u.shape[0] - 1
     M = u.shape[1] - 1
@@ -272,7 +266,100 @@ def implicitEuler(u, f, T, g1, g2):
     for k in range(M):
         # Construct independent array b
         b = np.zeros((N-1,1))
-        b[0] = u[1][k] + deltat*f(1*deltax, (k+1)*deltat) + lbd*g1((k+1)*deltat)
-        for l in range(2, N-1):
-            b[l-1] = u[l][k] + deltat*f(l*deltax, (k+1)*deltat)
-        b[N-2] = u[N-1][k] + deltat*f((N-1)*deltax, (k+1)*deltat) + lbd*g2((k+1)*deltat)
+        b[0] = u[1][k] + deltat*f(1*deltax, (k+1)*deltat, ftype) + lbd*g1((k+1)*deltat, g1type)
+        for l in range(1, N-2):
+            b[l-1] = u[l][k] + deltat*f(l*deltax, (k+1)*deltat, ftype)
+        b[N-2] = u[N-1][k] + deltat*f((N-1)*deltax, (k+1)*deltat, ftype) + lbd*g2((k+1)*deltat, g1type)
+
+        # Solve Au = b, for time k+1
+        u[1:N][k+1] = solveLinearSystem(A,b)
+
+    return u
+
+def crankNicholson(u, T, ftype=0, g1type=0, g2type=0):
+    """
+    The crank Nicholson method is described by equation (35) in the problem description.
+    In a similar manner to the implicit Euler method, it calculates the evolution of u(x,t).
+    However, this method has a second order convergence in both deltat and deltax.
+    Arguments:
+        - u : 2-dimensional array that stores the temperature at each
+          position xi and time tk
+        - T : time interval
+        - ftype : f(x,t) function type
+        - g1type : g1(t) function type
+        - g2type : g2(t) function type
+    """
+    N = u.shape[0] - 1
+    M = u.shape[1] - 1
+    deltax = 1/N
+    deltat = T/M
+    lbd = deltat/deltax**2 # Lambda
+
+    # Construct coefficient matrix A
+    A = np.zeros((N-1,N-1))
+    for i in range(N-1):
+        A[i][i] = 1 + lbd
+        if i != N - 2:
+            A[i][i+1] = A[i+1][i] = -lbd/2
+
+    for k in range(M):
+        # Construct independent array b
+        b = np.zeros((N-1,1))
+        b[0] = (1 - lbd)*u[1][k] + lbd/2*(g1((k+1)*deltat, g1type) + g1(k*deltat, g1type) + u[2][k]) + deltat/2*(f(1*deltax, k*deltat, ftype) + f(1*deltax, (k+1)*deltat, ftype))
+        for l in range(1, N-2):
+            b[l-1] = u[l][k] + deltat*f(l*deltax, (k+1)*deltat, ftype)
+        b[N-2] = (1 - lbd)*u[N-1][k] + lbd/2*(g2((k+1)*deltat, g2type) + g2(k*deltat, g2type) + u[N-2][k]) + deltat/2*(f((N-1)*deltax, k*deltat, ftype) + f((N-1)*deltax, (k+1)*deltat, ftype))
+
+        # Solve Au = b, for time k+1
+        u[1:N][k+1] = solveLinearSystem(A,b)
+
+    return u
+
+# =================================
+# Simulations
+# =================================
+
+# ---------------
+# Inputs
+# ---------------
+
+# To model the bar temperature problem, (x,t) will be understood as a (N,M) grid
+# in which xi = i*deltax, i = 0, ..., N and tk = k*deltat, k = 0, ..., M, where
+# deltax = 1/N and deltat = T/M.
+
+print(" ______________________________ ")
+print("|                              |")
+print("|         MAP3121 - EP1        |")
+print("|          Simulations         |")
+print("|______________________________|")
+print()
+print("INPUTS")
+print("---------------")
+
+print()
+input_list = input("Please input T, N and M respectively, separated by commas: ")
+T, N, M = input_list.split(',')
+
+deltax = 1/N
+deltat = T/M
+lbd = deltat/deltax**2 # Lambda
+
+print()
+print("Types :           '0'           |      '1'     |      '2'     ")
+print("--------------------------------|--------------|--------------")
+print("f(x,t): 10x^2(x-1) - 60xt + 20t | undetermined | undetermined ")
+print("u0(x) :            0            | undetermined |     N.A.     ")
+print("g1(t) :            0            | undetermined |     N.A.     ")
+print("g2(t) :            0            | undetermined |     N.A.     ")
+input_list = input("Please input f, g1 and g2 types respectively, separated by commas:")
+ftype, u0type, g1type, g2type = input_list.split(',')
+
+# ---------------
+# Defining the grid
+# ---------------
+
+u = np.zeros((N+1, M+1))
+# Applying initial conditions functions
+u[:][0]
+x = np.linspace(0, 1, N+1)
+t = np.linspace(0, T, M+1)
