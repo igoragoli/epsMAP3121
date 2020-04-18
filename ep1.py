@@ -26,9 +26,9 @@ def f(t, x, type):
     """
     if type == 0: # Item (a)
         f = 10*x**2*(x - 1)- 60*x*t + 20*t # OK
-    else if type == 1: # Item (b)
+    elif type == 1: # Item (b)
         f = 1 # item (b) - still undetermined
-    else if type == 2: # Item (c)
+    elif type == 2: # Item (c)
         f = 2 # item (c) - still undetermined
     return f
 
@@ -42,7 +42,7 @@ def u0(x, type):
     """
     if type == 0: # Items (a) and (c)
         u0 = 0 # OK
-    else if type == 1: # Item (b)
+    elif type == 1: # Item (b)
         u0 = 1 # item (b) - still undetermined
     return u0
 
@@ -58,7 +58,7 @@ def g1(t, type):
     """
     if type == 0: # Items (a) and (c)
         g1 = 0 # OK
-    else if type == 1: # Items (b)
+    elif type == 1: # Items (b)
         g1 = 1 # item (b) - still undetermined
     return g1
 
@@ -72,55 +72,48 @@ def g2(t, type):
     """
     if type == 0: # Items (a) and (c)
         g2 = 0 # OK
-    else if type == 1: # Items (b)
+    elif type == 1: # Items (b)
         g2 = 1 # item (b) - still undetermined
     return g2
 
-def LUDecomposition(A):
+def LDLtDecomposition(A):
     """
-    Performs LU decomposition.
+    Decomposes the matrix A into 2 matrices: L and D.
+    The product L*D*L^t equals A.
     Arguments:
-        - A : coefficient matrix
+        - A: matrix to be decomposed
     Returns:
-        - (L,U) : a tuple containing the lower triangular matrix and the upper
-                  triangular matrix, respectively
+        - L: Lower diagonal matrix
+        - D: Diagonal matrix
     """
-    n = A.shape[0]
-    # Create zero matrices for L and U
-    L = np.zeros((n, n))
-    U = np.zeros((n, n))
+    n = A.shape[0]    # First of all, we need to determine the size of the matrices, which is going to be the same as the matrix A
+    
+    L = np.eye(n)     # We inicially generate an identity matrix as the L matrix.
+                      # Since the L matrix is going to be a lower diagonal matrix, all the elements in its diagonal are 1. 
+    
+    D = np.zeros((n,n)) # D is inicially adopted as a zero matrix, because it's a diagonal matrix, so only the elements 
+                        # that are in the diagonal can be different from zero.
 
-    # Set all L[i][i] to 1
-    for i in range(n):
-            L[i][i] = 1
+    D[0, 0] = A[0, 0] # The first element of the diagonal from the D matrix is identical to the first diagonal element from A.
 
-    # Select U[0][0] satisfying L[0][0]*U[0][0] = A[0][0]
-    U[0][0] = A[0][0]
+    # We can apply the Cholesky Decomposition to decompose a matrix "A" in two matrices "D" and "L", where A = L*D*Lt
+    # The algorithm originally applies to a L*Lt decomposition, but there is an alternative form that generates a "D" matrix as well.
 
-    # Set the first row of U and the first column of L
-    for j in range(1, n):
-        U[0][j] = A[0][j]
-        L[j][0] = A[j][0]/U[0][0]
+    for i in range(0, n): # At column 0, the elements will be "A" from the same position divided by "D[0 ,0]", which was previously determined.
+      L[i, 0] = float(A[i, 0]) / float(D[0, 0])
 
-    # Set the remaining values (i.e the values in "the middle" of the matrices U and L)
-    for j in range(1, n):
+  
+    for i in range(1, n): # For the remaining rows, from 1 to n-1, we can apply the algorithm.
+      for j in range(1, i+1):      # We need to apply it to every element, so it's necessary to apply to the columns from 1 to i (the diagonal).
 
-      for i in range(j+1):
-          sumU = 0
-          for k in range(i):
-            sumU = sumU + (U[k][j] * L[i][k])
+        D[j, j] = A[j, j] - sum((L[j, k] ** 2) * D[k, k] for k in range(0, j)) 
+                              
+        if i > j:
+          L[i, j] = (1/D[j, j]) * (A[i, j] - sum(L[i, k]*L[j, k]*D[k, k] for k in range(0, j)))  
+                                  # Since there are no elements different from one in the diagonal at matrix L, the elements
+                                  # of L will be only calculated with i > j. 
 
-          U[i][j] = A[i][j] - sumU
-
-      for i in range(j, n):
-          sumL = 0
-          for k in range(j):
-            sumL = sumL + (U[k][j] * L[i][k])
-
-          if i != j:    #The values in the diagonal of the L matrix are 1, so just checking to avoid errors if the last diagonal of U is 0
-            L[i][j] = (A[i][j] - sumL) / U[j][j]
-
-    return (L,U)
+    return(D, L) 
 
 def permutationMatrix(A):
     """
@@ -140,16 +133,16 @@ def permutationMatrix(A):
     # It's necessary to apply the Gauss method on each row and column
 
     for i in range(0, n):
-          greater = A[i][i]   # Defining the initial greater values
+          greater = A[i, i]   # Defining the initial greater values
           greaterRow = i
 
           for j in range(i+1, n): # This "for" will find the greater value at column "i"
                                   # So it can be swapped for future use in the Gauss method, generating more accurate results
 
-            if np.absolute(A[j][i]) > np.absolute(greater):
+            if np.absolute(A[j, i]) > np.absolute(greater):
                                   # If the value at the row "j" is greater than the stored, it's going to refresh
                                   # the greater value, and in which row it is.
-              greater = A[j][i]
+              greater = A[j, i]
               greaterRow = j
 
           # Now, it's necessary to swap the "i" row with the row that has the greater element in column "i"
@@ -160,7 +153,7 @@ def permutationMatrix(A):
           # And then, just apply the Gauss method for each row "j", starting at column "i + 1"
 
           for j in range(i+1, n):
-            m = A[j][i] / A[i][i] # Calculating the multipliers
+            m = A[j, i] / A[i, i] # Calculating the multipliers
                                   # It's necessary to keep 2 rows in "memory" every iteraction: i and j
                                   # j is the row whose elements will be the minuends
                                   # i is the row whose elements will be the subtrahends
@@ -169,11 +162,11 @@ def permutationMatrix(A):
             for k in range(i, n): # "k" is a index for the columns and will scan each element of the row, starting at column "i"
 
               if i == k:
-                A[j][k] = 0       # If the element is directly under the diagonal at column "i", it's going to be zero.
+                A[j, k] = 0       # If the element is directly under the diagonal at column "i", it's going to be zero.
 
               elif i != k:
-                A[j][k] -= A[i][k] * m
-                                  # If the element is in any column, except "i", it's going to be subtracted by m * A[i][k]
+                A[j, k] -= A[i, k] * m
+                                  # If the element is in any column, except "i", it's going to be subtracted by m * A[i, k]
               else:
                 break # To avoid errors
 
@@ -200,16 +193,16 @@ def solveLinearSystem(A,b):
     for i in range(0, n):
         sum = 0
         for j in range(i):
-            sum = sum + L[i][j]*y[j]
-        y[i] = (1/L[i][i])*(b[i] - sum)
+            sum = sum + L[i, j]*y[j]
+        y[i] = (1/L[i, i])*(b[i] - sum)
 
     # Now, we solve Ux = y
     x = np.zeros(n)
     for i in range(n-1, -1, -1):
         sum = 0
         for j in range(n-1, i, -1):
-            sum = sum + U[i][j]*x[j]
-        x[i] = (1/U[i][i])*(y[i] - sum)
+            sum = sum + U[i, j]*x[j]
+        x[i] = (1/U[i, i])*(y[i] - sum)
 
     return x
 
@@ -234,7 +227,7 @@ def method11(u, T, ftype=0):
     deltat = T/M
     for k in range(M):
         for i in range(1, N):
-            u[i][k+1] = u[i][k] + deltat*((u[i-1][k] - 2*u[i][k] + u[i+1][k])/deltax**2 + f(i*deltax, k*deltat, ftype))
+            u[i, k+1] = u[i, k] + deltat*((u[i-1, k] - 2*u[i, k] + u[i+1, k])/deltax**2 + f(i*deltax, k*deltat, ftype))
     return u
 
 def implicitEuler(u, T, ftype=0, g1type=0, g2type=0):
@@ -259,20 +252,20 @@ def implicitEuler(u, T, ftype=0, g1type=0, g2type=0):
     # Construct coefficient matrix A
     A = np.zeros((N-1,N-1))
     for i in range(N-1):
-        A[i][i] = 1 + 2*lbd
+        A[i, i] = 1 + 2*lbd
         if i != N - 2:
-            A[i][i+1] = A[i+1][i] = -lbd
+            A[i, i+1] = A[i+1, i] = -lbd
 
     for k in range(M):
         # Construct independent array b
         b = np.zeros((N-1,1))
-        b[0] = u[1][k] + deltat*f(1*deltax, (k+1)*deltat, ftype) + lbd*g1((k+1)*deltat, g1type)
+        b[0] = u[1, k] + deltat*f(1*deltax, (k+1)*deltat, ftype) + lbd*g1((k+1)*deltat, g1type)
         for l in range(1, N-2):
-            b[l-1] = u[l][k] + deltat*f(l*deltax, (k+1)*deltat, ftype)
-        b[N-2] = u[N-1][k] + deltat*f((N-1)*deltax, (k+1)*deltat, ftype) + lbd*g2((k+1)*deltat, g1type)
+            b[l-1] = u[l, k] + deltat*f(l*deltax, (k+1)*deltat, ftype)
+        b[N-2] = u[N-1, k] + deltat*f((N-1)*deltax, (k+1)*deltat, ftype) + lbd*g2((k+1)*deltat, g1type)
 
         # Solve Au = b, for time k+1
-        u[1:N][k+1] = solveLinearSystem(A,b)
+        u[1:N, k+1] = solveLinearSystem(A,b)
 
     return u
 
@@ -298,20 +291,20 @@ def crankNicholson(u, T, ftype=0, g1type=0, g2type=0):
     # Construct coefficient matrix A
     A = np.zeros((N-1,N-1))
     for i in range(N-1):
-        A[i][i] = 1 + lbd
+        A[i, i] = 1 + lbd
         if i != N - 2:
-            A[i][i+1] = A[i+1][i] = -lbd/2
+            A[i, i+1] = A[i+1, i] = -lbd/2
 
     for k in range(M):
         # Construct independent array b
         b = np.zeros((N-1,1))
-        b[0] = (1 - lbd)*u[1][k] + lbd/2*(g1((k+1)*deltat, g1type) + g1(k*deltat, g1type) + u[2][k]) + deltat/2*(f(1*deltax, k*deltat, ftype) + f(1*deltax, (k+1)*deltat, ftype))
+        b[0] = (1 - lbd)*u[1, k] + lbd/2*(g1((k+1)*deltat, g1type) + g1(k*deltat, g1type) + u[2, k]) + deltat/2*(f(1*deltax, k*deltat, ftype) + f(1*deltax, (k+1)*deltat, ftype))
         for l in range(1, N-2):
-            b[l-1] = u[l][k] + deltat*f(l*deltax, (k+1)*deltat, ftype)
-        b[N-2] = (1 - lbd)*u[N-1][k] + lbd/2*(g2((k+1)*deltat, g2type) + g2(k*deltat, g2type) + u[N-2][k]) + deltat/2*(f((N-1)*deltax, k*deltat, ftype) + f((N-1)*deltax, (k+1)*deltat, ftype))
+            b[l-1] = u[l, k] + deltat*f(l*deltax, (k+1)*deltat, ftype)
+        b[N-2] = (1 - lbd)*u[N-1, k] + lbd/2*(g2((k+1)*deltat, g2type) + g2(k*deltat, g2type) + u[N-2, k]) + deltat/2*(f((N-1)*deltax, k*deltat, ftype) + f((N-1)*deltax, (k+1)*deltat, ftype))
 
         # Solve Au = b, for time k+1
-        u[1:N][k+1] = solveLinearSystem(A,b)
+        u[1:N, k+1] = solveLinearSystem(A,b)
 
     return u
 
