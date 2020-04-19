@@ -76,19 +76,35 @@ def g2(t, type):
         g2 = 1 # item (b) - still undetermined
     return g2
 
-def LDLtDecomposition(A):
+def LDLtDecomposition(diagonalA, subdiagonalA):
     """
     Decomposes the matrix A into 2 matrices: L and D.
     The product L*D*L^t equals A.
+    The matrix A is a symmetric tridiagonal matrix, so it can be described as 2 arrays: the diagonal and the subdiagonal.
+    The matrix D is a diagonal matrix, it can be described as 1 array.
+    The matrix L is a lower diagonal matrix with elements different from zero only in the diagonal and the subdiagonal
+    Since the diagonal of the matrix L is composed only from ones, L can be described as 1 array, which is the subdiagonal.
     Arguments:
-        - A: matrix to be decomposed
+        - diagonalA: array that represents the diagonal of the matrix to be decomposed
+        - subdiagonalA: array that represents the subdiagonal of the matrix to be decomposed
     Returns:
-        - L: Lower diagonal matrix
-        - D: Diagonal matrix
+        - Larr: Array that represents the subdiagonal of the L matrix 
+        - Darr: Array that represents the diagonal of the D matrix
     """
-    n = A.shape[0]    # First of all, we need to determine the size of the matrices, which is going to be the same as the matrix A
+    n = diagonalA.shape[0]   # First of all, we need to determine the size of the matrices, which is going to be the same as the matrix A
     
-    L = np.eye(n)     # We inicially generate an identity matrix as the L matrix.
+    A = np.eye(n)   # To use the algorithm, it's necessary to transform the arrays back to matrices.
+
+    for i in range(n):
+      A[i, i] = diagonalA[i]
+    
+    for i in range(n-1):
+      A[i+1, i] = subdiagonalA[i+1]
+      A[i, i+1] = subdiagonalA[i+1]
+    
+    # Now we have the original A matrix, which we can use for the decomposition.
+    
+    L = np.eye(n)   # We inicially generate an identity matrix as the L matrix.
                       # Since the L matrix is going to be a lower diagonal matrix, all the elements in its diagonal are 1. 
     
     D = np.zeros((n,n)) # D is inicially adopted as a zero matrix, because it's a diagonal matrix, so only the elements 
@@ -113,7 +129,17 @@ def LDLtDecomposition(A):
                                   # Since there are no elements different from one in the diagonal at matrix L, the elements
                                   # of L will be only calculated with i > j. 
 
-    return(D, L) 
+    Darr = np.zeros(n)    # Now we can generate the arrays that are going to describe the D and L matrices.
+    Larr = np.zeros(n)    # The size of Larr actually needs to be n-1, but we created it with size n because it's better for the loops.
+                          # So the element at index 0 at Larrn is going to be zero, and won't be used in the future.
+
+    for i in range(n):
+      Darr[i] = D[i, i]
+    
+    for i in range(n-1):
+      Larr[i+1] = L[i+1, i]
+
+    return(Darr, Larr) 
 
 def permutationMatrix(A):
     """
@@ -127,7 +153,7 @@ def permutationMatrix(A):
     #The most efficient way to generate que permutation matrix is using gauss elimination,
     #because with the multipliers we can refresh the matrix, therefore we can change the rows every time the multipliers are calculated
 
-    n = len(A) #A.shape(0) didn't work when I used np.array
+    n = A.shape[0]
     P = np.eye(n) # Generate the identity matrix
 
     # It's necessary to apply the Gauss method on each row and column
@@ -181,28 +207,64 @@ def solveLinearSystem(A,b):
     Returns:
         - x : the solution to Ax = b.
     """
-    n = A.shape[0]
+
+    n = A.shape[0]    # Since A is a symmetric tridiagonal, we can rearrange it into 2 arrays:
+                      # The diagonal (diagA) and the subdiagonal (subdiagA)
+
+    diagA = np.zeros(n)   # Creating both arrays with the size n
+    subdiagA = np.zeros(n)  # subdiagA will actually be used starting at index 1
+
+    for i in range(n):    # Setting the values on the arrays
+      diagA[i] = A[i, i]
+    
+    for i in range(n-1):
+      subdiagA[i+1] = A[i+1, i]
+
     # Get lower triangular matrix L and upper triangular matrix U
+
     #P = permutationMatrix(A)
-    #A = np.dot(P,A)
+    #A = np.dot(P, A)
+    #A = np.dot(A, P.transpose())
     #b = np.dot(P,b)
-    L, U = LUDecomposition(A)
+    # Note: I don't think it's necessary to permutate the matrix, since A is symmetric and tridiagonal
+    # The permutation only applies for the LU decomposition
 
-    # To solve LUx = b, we first must let y = Ux and solve Ly = b
+    diagD, subdiagL = LDLtDecomposition(diagA, subdiagA)    # Now we can decompose A into 2 arrays: D and L
+                                                            # diagD will represent the diagonal on a diagonal matrix, D
+                                                            # subdiagL will represent the subdiagonal on a bidiagonal matrix L
+                                                            # A can be described by the multiplication L * D * Lt
+
+    L = np.eye(n)         # Now we can generate the matrices to transform back the arrays to matrices
+    D = np.zeros((n,n))
+
+    for i in range(n):
+      D[i, i] = diagD[i]
+    
+    for i in range(n-1):
+      L[i+1, i] = subdiagL[i+1]
+
+    Lt = L.transpose()   # And we create the Lt matrix as well, which is the transposed L matrix
+    
+    # To find a solution for LDLt * x = b, we need to solve the system it by parts
+    # First, we let y = Lt*x, and then we need to solve (L*D) * y = b
+    
+    LD = np.dot(L, D)
+
     y = np.zeros(n)
-    for i in range(0, n):
-        sum = 0
-        for j in range(i):
-            sum = sum + L[i, j]*y[j]
-        y[i] = (1/L[i, i])*(b[i] - sum)
 
-    # Now, we solve Ux = y
+    for i in range(0, n):
+        sumLD = 0
+        for j in range(i):
+            sumLD = sumLD + LD[i, j]*y[j]
+        y[i] = (1/LD[i, i])*(b[i] - sumLD)
+
+    # Now, we solve Lt*x = y
     x = np.zeros(n)
     for i in range(n-1, -1, -1):
-        sum = 0
+        sumLt = 0
         for j in range(n-1, i, -1):
-            sum = sum + U[i, j]*x[j]
-        x[i] = (1/U[i, i])*(y[i] - sum)
+            sumLt = sumLt + Lt[i, j]*x[j]
+        x[i] = (1/Lt[i, i])*(y[i] - sumLt)
 
     return x
 
