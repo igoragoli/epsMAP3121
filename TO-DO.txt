@@ -8,8 +8,9 @@ Functions and Methods
 5. Implement Implicit Euler Method - OK
 6. Implement Crank-Nicholson Method - OK
 7. LDL-1 Decomposition function - OK
-8. Change solveLinearSystem() to use LDL-1 decomp. instead of LU decomp. - OK
+8. Change solveLinearSystem() to use LDL-1 decomp. instead of LU decomp - OK
 9. Deduce f, u0, g1, g2 for itens (a), (b) and (c) and complete their functions
+10. Read all the fucking program and correct x <--> t for wrong functions
 ---------------------
 Simulations
 ---------------------
