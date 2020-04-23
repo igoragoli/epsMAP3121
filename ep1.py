@@ -24,12 +24,18 @@ def f(t, x, type):
         - type : type of the function, specifies what f(x,t) should be
           used at the function call
     """
-    if type == 0: # Item (a)
+    if type == 0: # First function on item (a)
         f = 10*x**2*(x - 1)- 60*x*t + 20*t # OK
     elif type == 1: # Item (b)
-        f = 1 # item (b) - still undetermined
+        f = np.exp(t - x)*(25*t**2*cos(5*t*x))
     elif type == 2: # Item (c)
-        f = 2 # item (c) - still undetermined
+        h = 10000*(1 - 2*t**2)
+        if np.abs(x - p) < h/2:
+            f = 1/h
+        else:
+            f = 0
+    elif type == 3: # Second function on item (a)
+        f = 10*np.cos(10*t)*x**2*(1-x)**2-(1 + np.sin(10*t))*(12*x**2 - 12*x + 2)
     return f
 
 def u0(x, type):
@@ -43,7 +49,7 @@ def u0(x, type):
     if type == 0: # Items (a) and (c)
         u0 = 0 # OK
     elif type == 1: # Item (b)
-        u0 = 1 # item (b) - still undetermined
+        u0 = np.exp(-x)
     return u0
 
 # g1(t) and g2(t) are Dirichlet boundary conditions, describing the
@@ -59,7 +65,7 @@ def g1(t, type):
     if type == 0: # Items (a) and (c)
         g1 = 0 # OK
     elif type == 1: # Items (b)
-        g1 = 1 # item (b) - still undetermined
+        g1 = np.exp(t)
     return g1
 
 def g2(t, type):
@@ -73,7 +79,7 @@ def g2(t, type):
     if type == 0: # Items (a) and (c)
         g2 = 0 # OK
     elif type == 1: # Items (b)
-        g2 = 1 # item (b) - still undetermined
+        g2 = np.exp(t-1)*np.cos(5*t)
     return g2
 
 def LDLtDecomposition(diagonalA, subdiagonalA):
@@ -88,26 +94,26 @@ def LDLtDecomposition(diagonalA, subdiagonalA):
         - diagonalA: array that represents the diagonal of the matrix to be decomposed
         - subdiagonalA: array that represents the subdiagonal of the matrix to be decomposed
     Returns:
-        - Larr: Array that represents the subdiagonal of the L matrix 
+        - Larr: Array that represents the subdiagonal of the L matrix
         - Darr: Array that represents the diagonal of the D matrix
     """
     n = diagonalA.shape[0]   # First of all, we need to determine the size of the matrices, which is going to be the same as the matrix A
-    
+
     A = np.eye(n)   # To use the algorithm, it's necessary to transform the arrays back to matrices.
 
     for i in range(n):
       A[i, i] = diagonalA[i]
-    
+
     for i in range(n-1):
       A[i+1, i] = subdiagonalA[i+1]
       A[i, i+1] = subdiagonalA[i+1]
-    
+
     # Now we have the original A matrix, which we can use for the decomposition.
-    
+
     L = np.eye(n)   # We inicially generate an identity matrix as the L matrix.
-                      # Since the L matrix is going to be a lower diagonal matrix, all the elements in its diagonal are 1. 
-    
-    D = np.zeros((n,n)) # D is inicially adopted as a zero matrix, because it's a diagonal matrix, so only the elements 
+                      # Since the L matrix is going to be a lower diagonal matrix, all the elements in its diagonal are 1.
+
+    D = np.zeros((n,n)) # D is inicially adopted as a zero matrix, because it's a diagonal matrix, so only the elements
                         # that are in the diagonal can be different from zero.
 
     D[0, 0] = A[0, 0] # The first element of the diagonal from the D matrix is identical to the first diagonal element from A.
@@ -118,16 +124,16 @@ def LDLtDecomposition(diagonalA, subdiagonalA):
     for i in range(0, n): # At column 0, the elements will be "A" from the same position divided by "D[0 ,0]", which was previously determined.
       L[i, 0] = float(A[i, 0]) / float(D[0, 0])
 
-  
+
     for i in range(1, n): # For the remaining rows, from 1 to n-1, we can apply the algorithm.
       for j in range(1, i+1):      # We need to apply it to every element, so it's necessary to apply to the columns from 1 to i (the diagonal).
 
-        D[j, j] = A[j, j] - sum((L[j, k] ** 2) * D[k, k] for k in range(0, j)) 
-                              
+        D[j, j] = A[j, j] - sum((L[j, k] ** 2) * D[k, k] for k in range(0, j))
+
         if i > j:
-          L[i, j] = (1/D[j, j]) * (A[i, j] - sum(L[i, k]*L[j, k]*D[k, k] for k in range(0, j)))  
+          L[i, j] = (1/D[j, j]) * (A[i, j] - sum(L[i, k]*L[j, k]*D[k, k] for k in range(0, j)))
                                   # Since there are no elements different from one in the diagonal at matrix L, the elements
-                                  # of L will be only calculated with i > j. 
+                                  # of L will be only calculated with i > j.
 
     Darr = np.zeros(n)    # Now we can generate the arrays that are going to describe the D and L matrices.
     Larr = np.zeros(n)    # The size of Larr actually needs to be n-1, but we created it with size n because it's better for the loops.
@@ -135,11 +141,11 @@ def LDLtDecomposition(diagonalA, subdiagonalA):
 
     for i in range(n):
       Darr[i] = D[i, i]
-    
+
     for i in range(n-1):
       Larr[i+1] = L[i+1, i]
 
-    return(Darr, Larr) 
+    return(Darr, Larr)
 
 def permutationMatrix(A):
     """
@@ -216,7 +222,7 @@ def solveLinearSystem(A,b):
 
     for i in range(n):    # Setting the values on the arrays
       diagA[i] = A[i, i]
-    
+
     for i in range(n-1):
       subdiagA[i+1] = A[i+1, i]
 
@@ -239,15 +245,15 @@ def solveLinearSystem(A,b):
 
     for i in range(n):
       D[i, i] = diagD[i]
-    
+
     for i in range(n-1):
       L[i+1, i] = subdiagL[i+1]
 
     Lt = L.transpose()   # And we create the Lt matrix as well, which is the transposed L matrix
-    
+
     # To find a solution for LDLt * x = b, we need to solve the system it by parts
     # First, we let y = Lt*x, and then we need to solve (L*D) * y = b
-    
+
     LD = np.dot(L, D)
 
     y = np.zeros(n)
@@ -271,7 +277,7 @@ def solveLinearSystem(A,b):
 # ---------------
 # Iterative Methods
 # ---------------
-
+# x <--> t CORRECTED
 def method11(u, T, ftype=0):
     """
     Iterative method described by equation (11) in the problem description.
@@ -283,15 +289,15 @@ def method11(u, T, ftype=0):
         - T : time interval
         - ftype : f(x,t) function type
     """
-    N = u.shape[0] - 1
-    M = u.shape[1] - 1
-    deltax = 1/N
+    M = u.shape[0] - 1
+    N = u.shape[1] - 1
     deltat = T/M
+    deltax = 1/N
     for k in range(M):
         for i in range(1, N):
-            u[i, k+1] = u[i, k] + deltat*((u[i-1, k] - 2*u[i, k] + u[i+1, k])/deltax**2 + f(i*deltax, k*deltat, ftype))
+            u[k+1, i] = u[k, i] + deltat*((u[k, i-1] - 2*u[k, i] + u[k, i+1])/deltax**2 + f(k*deltat, i*deltax, ftype))
     return u
-
+# x <--> t CORRECTED
 def implicitEuler(u, T, ftype=0, g1type=0, g2type=0):
     """
     The implicit Euler method is described by equation (29) in the problem description.
@@ -305,10 +311,10 @@ def implicitEuler(u, T, ftype=0, g1type=0, g2type=0):
         - g1type : g1(t) function type
         - g2type : g2(t) function type
     """
-    N = u.shape[0] - 1
-    M = u.shape[1] - 1
-    deltax = 1/N
+    M = u.shape[0] - 1
+    N = u.shape[1] - 1
     deltat = T/M
+    deltax = 1/N
     lbd = deltat/deltax**2 # Lambda
 
     # Construct coefficient matrix A
@@ -321,13 +327,13 @@ def implicitEuler(u, T, ftype=0, g1type=0, g2type=0):
     for k in range(M):
         # Construct independent array b
         b = np.zeros((N-1,1))
-        b[0] = u[1, k] + deltat*f(1*deltax, (k+1)*deltat, ftype) + lbd*g1((k+1)*deltat, g1type)
+        b[0] = u[k, 1] + deltat*f((k+1)*deltat, 1*deltax, ftype) + lbd*g1((k+1)*deltat, g1type)
         for l in range(1, N-2):
-            b[l-1] = u[l, k] + deltat*f(l*deltax, (k+1)*deltat, ftype)
-        b[N-2] = u[N-1, k] + deltat*f((N-1)*deltax, (k+1)*deltat, ftype) + lbd*g2((k+1)*deltat, g1type)
+            b[l] = u[k, l] + deltat*f((k+1)*deltat, l*deltax, ftype)
+        b[N-2] = u[k, N-1] + deltat*f((k+1)*deltat, (N-1)*deltax, ftype) + lbd*g2((k+1)*deltat, g1type)
 
         # Solve Au = b, for time k+1
-        u[1:N, k+1] = solveLinearSystem(A,b)
+        u[k+1, 1:N] = solveLinearSystem(A,b)
 
     return u
 
@@ -344,10 +350,10 @@ def crankNicholson(u, T, ftype=0, g1type=0, g2type=0):
         - g1type : g1(t) function type
         - g2type : g2(t) function type
     """
-    N = u.shape[0] - 1
-    M = u.shape[1] - 1
-    deltax = 1/N
+    M = u.shape[0] - 1
+    N = u.shape[1] - 1
     deltat = T/M
+    deltax = 1/N
     lbd = deltat/deltax**2 # Lambda
 
     # Construct coefficient matrix A
@@ -402,7 +408,7 @@ lbd = deltat/deltax**2 # Lambda
 print()
 print("Types :           '0'           |      '1'     |      '2'     ")
 print("--------------------------------|--------------|--------------")
-print("f(x,t): 10x^2(x-1) - 60xt + 20t | undetermined | undetermined ")
+print("f(t,x): 10x^2(x-1) - 60xt + 20t | undetermined | undetermined ")
 print("u0(x) :            0            | undetermined |     N.A.     ")
 print("g1(t) :            0            | undetermined |     N.A.     ")
 print("g2(t) :            0            | undetermined |     N.A.     ")
