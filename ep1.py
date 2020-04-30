@@ -54,6 +54,8 @@ def u0(x, type):
         u0 = 0 # OK
     elif type == 1: # Item (b)
         u0 = np.exp(-x)
+    elif type == 3: # Second function of item (a)
+      u0 = x**2 * (1-x)**2
     return u0
 
 # g1(t) and g2(t) are Dirichlet boundary conditions, describing the
@@ -66,7 +68,7 @@ def g1(t, type):
         - type : type of the function, specifies what g1(t) should be
           used at the function call
     """
-    if type == 0: # Items (a) and (c)
+    if type == 0 or type == 3: # Items (a) and (c)
         g1 = 0 # OK
     elif type == 1: # Items (b)
         g1 = np.exp(t)
@@ -80,7 +82,7 @@ def g2(t, type):
         - type : type of the function, specifies what g2(t) should be
           used at the function call
     """
-    if type == 0: # Items (a) and (c)
+    if type == 0 or type == 3: # Items (a) and (c)
         g2 = 0 # OK
     elif type == 1: # Items (b)
         g2 = np.exp(t-1)*np.cos(5*t)
@@ -381,6 +383,32 @@ def crankNicholson(u, T, ftype=0, g1type=0, g2type=0):
 
     return u
 
+def plotgraphs(u):
+    M = u.shape[0] - 1
+
+    i = M/10
+    i = int(i)
+
+    fig = plt.figure()
+    plt.plot(u[0])
+    j = i
+
+    while(j < M):
+      plt.plot(u[j])
+      j = j + i
+    
+    plt.plot(u[M])
+
+    plt.suptitle('Evolução da temperatura para variação de t')
+    fig.savefig('evolucao.png')
+
+    
+    fig2 = plt.figure()
+    plt.plot(u[M])
+    plt.suptitle('Temperatura em t = T')
+    fig.savefig('final.png')
+
+
 # =================================
 # Simulations
 # =================================
@@ -415,12 +443,12 @@ deltat = T/M
 lbd = deltat/deltax**2 # Lambda
 
 print()
-print("Types :           '0'           |      '1'     |      '2'     ")
-print("--------------------------------|--------------|--------------")
-print("f(t,x): 10x^2(x-1) - 60xt + 20t | undetermined | undetermined ")
-print("u0(x) :            0            | undetermined |     N.A.     ")
-print("g1(t) :            0            | undetermined |     N.A.     ")
-print("g2(t) :            0            | undetermined |     N.A.     ")
+print("Types :           '0'           |      '1'     |      '2'     |                          '3'                        ")
+print("--------------------------------|--------------|--------------|-----------------------------------------------------")
+print("f(t,x): 10x^2(x-1) - 60xt + 20t | undetermined | undetermined | 10cos(10t)x^2(1-x)^2-(1 + sin(10t))(12x^2 - 12x + 2)")
+print("u0(x) :            0            | undetermined |     N.A.     |                      x^2(1-x)^2                     ")
+print("g1(t) :            0            | undetermined |     N.A.     |                           0                         ")
+print("g2(t) :            0            | undetermined |     N.A.     |                           0                         ")
 input_list = input("Please input f, g1 and g2 types respectively, separated by commas:")
 ftype, u0type, g1type, g2type = input_list.split(',')
 
@@ -435,12 +463,12 @@ g2type = int(g2type)
 
 u = np.zeros((M+1, N+1))
 # Applying initial conditions functions
-u[:][0]
+for i in range(N):
+  u[0][i] = u0(i*deltax, u0type)
+
 x = np.linspace(0, 1, N+1)
 t = np.linspace(0, T, M+1)
 
-result = implicitEuler(u, T, ftype, g1type, g2type)
+result = method11(u, T, ftype)#, g1type, g2type)
 
-print(M)
-fig = plt.figure()
-plt.plot(result[M])
+plotgraphs(result)
