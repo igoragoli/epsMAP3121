@@ -6,6 +6,7 @@
 ####################################################
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 # =================================
 # Functions and Iterative Methods
@@ -24,19 +25,22 @@ def f(t, x, type):
         - type : type of the function, specifies what f(x,t) should be
           used at the function call
     """
+    func = 0
+
     if type == 0: # First function on item (a)
-        f = 10*x**2*(x - 1)- 60*x*t + 20*t # OK
+        func = 10*x**2*(x - 1)- 60*x*t + 20*t # OK
     elif type == 1: # Item (b)
-        f = np.exp(t - x)*(25*t**2*cos(5*t*x))
+        func = np.exp(t - x)*(25*t**2*cos(5*t*x))
     elif type == 2: # Item (c)
         h = 10000*(1 - 2*t**2)
         if np.abs(x - p) < h/2:
-            f = 1/h
+            func = 1/h
         else:
-            f = 0
+            func = 0
     elif type == 3: # Second function on item (a)
-        f = 10*np.cos(10*t)*x**2*(1-x)**2-(1 + np.sin(10*t))*(12*x**2 - 12*x + 2)
-    return f
+        func = 10*np.cos(10*t)*x**2*(1-x)**2-(1 + np.sin(10*t))*(12*x**2 - 12*x + 2)
+      
+    return func
 
 def u0(x, type):
     """
@@ -297,6 +301,7 @@ def method11(u, T, ftype=0):
         for i in range(1, N):
             u[k+1, i] = u[k, i] + deltat*((u[k, i-1] - 2*u[k, i] + u[k, i+1])/deltax**2 + f(k*deltat, i*deltax, ftype))
     return u
+
 # x <--> t CORRECTED
 def implicitEuler(u, T, ftype=0, g1type=0, g2type=0):
     """
@@ -401,6 +406,10 @@ print()
 input_list = input("Please input T, N and M respectively, separated by commas: ")
 T, N, M = input_list.split(',')
 
+T = int(T)
+N = int(N)
+M = int (M)
+
 deltax = 1/N
 deltat = T/M
 lbd = deltat/deltax**2 # Lambda
@@ -415,12 +424,23 @@ print("g2(t) :            0            | undetermined |     N.A.     ")
 input_list = input("Please input f, g1 and g2 types respectively, separated by commas:")
 ftype, u0type, g1type, g2type = input_list.split(',')
 
+ftype = int(ftype)
+u0type = int(u0type)
+g1type = int(g1type)
+g2type = int(g2type)
+
 # ---------------
 # Defining the grid
 # ---------------
 
-u = np.zeros((N+1, M+1))
+u = np.zeros((M+1, N+1))
 # Applying initial conditions functions
 u[:][0]
 x = np.linspace(0, 1, N+1)
 t = np.linspace(0, T, M+1)
+
+result = implicitEuler(u, T, ftype, g1type, g2type)
+
+print(M)
+fig = plt.figure()
+plt.plot(result[M])
