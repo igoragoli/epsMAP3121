@@ -345,7 +345,7 @@ def implicitEuler(u, T, ftype=0, g1type=0, g2type=0):
         b = np.zeros((N-1,1))
         b[0] = u[k, 1] + deltat*f((k+1)*deltat, 1*deltax, ftype) + lbd*g1((k+1)*deltat, g1type)
         for l in range(1, N-2):
-            b[l] = u[k, l] + deltat*f((k+1)*deltat, l*deltax, ftype)
+            b[l] = u[k, l] + deltat*f((k+1)*deltat, (l+1)*deltax, ftype)
         b[N-2] = u[k, N-1] + deltat*f((k+1)*deltat, (N-1)*deltax, ftype) + lbd*g2((k+1)*deltat, g1type)
 
         # Solve Au = b, for time k+1
@@ -471,7 +471,6 @@ print()
 input_list = input("Please input f, u0, g1 and g2 types respectively, separated by commas: ")
 ftype, u0type, g1type, g2type = input_list.split(',')
 
-
 ftype = int(ftype)
 u0type = int(u0type)
 g1type = int(g1type)
@@ -514,4 +513,3 @@ else:
 
 # Plot graphs
 tempGraphs(result)
-
