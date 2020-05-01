@@ -7,6 +7,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from progress.bar import Bar
 
 # =================================
 # Functions and Iterative Methods
@@ -26,15 +27,17 @@ def f(t, x, type):
           used at the function call
     """
     func = 0
+    p = 0.25
+    h = deltax
 
     if type == 0: # First function on item (a)
         func = 10*x**2*(x - 1)- 60*x*t + 20*t # OK
     elif type == 1: # Item (b)
-        func = np.exp(t - x)*(25*t**2*cos(5*t*x))
+        func = np.exp(t - x)*(25*t**2*np.cos(5*t*x))
     elif type == 2: # Item (c)
-        h = 10000*(1 - 2*t**2)
+        r = 10000*(1 - 2*t**2)
         if np.abs(x - p) < h/2:
-            func = 1/h
+            func = r/h
         else:
             func = 0
     elif type == 3: # Second function on item (a)
@@ -299,9 +302,14 @@ def method11(u, T, ftype=0):
     N = u.shape[1] - 1
     deltat = T/M
     deltax = 1/N
+
+    bar = Bar("Running method11()", max=M)
     for k in range(M):
         for i in range(1, N):
             u[k+1, i] = u[k, i] + deltat*((u[k, i-1] - 2*u[k, i] + u[k, i+1])/deltax**2 + f(k*deltat, i*deltax, ftype))
+        bar.next()
+    bar.finish()
+
     return u
 
 # x <--> t CORRECTED
@@ -331,6 +339,7 @@ def implicitEuler(u, T, ftype=0, g1type=0, g2type=0):
         if i != N - 2:
             A[i, i+1] = A[i+1, i] = -lbd
 
+    bar = Bar("Running implicitEuler()", max=M)
     for k in range(M):
         # Construct independent array b
         b = np.zeros((N-1,1))
@@ -341,6 +350,9 @@ def implicitEuler(u, T, ftype=0, g1type=0, g2type=0):
 
         # Solve Au = b, for time k+1
         u[k+1, 1:N] = solveLinearSystem(A,b)
+        
+        bar.next()
+    bar.finish()
 
     return u
 
@@ -370,6 +382,7 @@ def crankNicholson(u, T, ftype=0, g1type=0, g2type=0):
         if i != N - 2:
             A[i, i+1] = A[i+1, i] = -lbd/2
 
+    bar = Bar("Running implicitEuler()", max=M)
     for k in range(M):
         # Construct independent array b
         b = np.zeros((N-1,1))
@@ -381,33 +394,33 @@ def crankNicholson(u, T, ftype=0, g1type=0, g2type=0):
         # Solve Au = b, for time k+1
         u[1:N, k+1] = solveLinearSystem(A,b)
 
+        bar.next()
+    bar.finish()
+
     return u
 
-def plotgraphs(u):
+def tempGraphs(u):
+    """
+    Plots graphs related to the temperature: the evolution of the temperature in the bar through time, 
+    and the temperature at t = T.
+    Arguments:
+        - u : time x position temperature grid.
+    """
     M = u.shape[0] - 1
-
-    i = M/10
-    i = int(i)
+    step = int(M/10)
 
     fig = plt.figure()
-    plt.plot(u[0])
-    j = i
-
-    while(j < M):
-      plt.plot(u[j])
-      j = j + i
-    
-    plt.plot(u[M])
-
+    for i in range(0, M + 1, step):
+        plt.plot(u[i])
     plt.suptitle('Evolução da temperatura para variação de t')
     fig.savefig('evolucao.png')
-
     
-    fig2 = plt.figure()
+    fig = plt.figure()
     plt.plot(u[M])
     plt.suptitle('Temperatura em t = T')
     fig.savefig('final.png')
 
+    plt.show()
 
 # =================================
 # Simulations
@@ -427,10 +440,7 @@ print("|         MAP3121 - EP1        |")
 print("|          Simulations         |")
 print("|______________________________|")
 print()
-print("INPUTS")
-print("---------------")
 
-print()
 input_list = input("Please input T, N and M respectively, separated by commas: ")
 T, N, M = input_list.split(',')
 
@@ -442,15 +452,25 @@ deltax = 1/N
 deltat = T/M
 lbd = deltat/deltax**2 # Lambda
 
+# Select functions
 print()
-print("Types :           '0'           |      '1'     |      '2'     |                          '3'                        ")
-print("--------------------------------|--------------|--------------|-----------------------------------------------------")
-print("f(t,x): 10x^2(x-1) - 60xt + 20t | undetermined | undetermined | 10cos(10t)x^2(1-x)^2-(1 + sin(10t))(12x^2 - 12x + 2)")
-print("u0(x) :            0            | undetermined |     N.A.     |                      x^2(1-x)^2                     ")
-print("g1(t) :            0            | undetermined |     N.A.     |                           0                         ")
-print("g2(t) :            0            | undetermined |     N.A.     |                           0                         ")
-input_list = input("Please input f, g1 and g2 types respectively, separated by commas:")
+print("Types :           '0'               |             '1'            ")
+print("------------------------------------|----------------------------")
+print("f(t,x): 10x^2(x-1) - 60xt + 20t (a1)|e^(t - x)*25t^2*cos(5tx) (b)")
+print("u0(x) :            0         (a1, c)|           e^(-x)        (b)")
+print("g1(t) :            0     (a1, a2, c)|           e^(t)         (b)")
+print("g2(t) :            0     (a1, a2, c)|           e^(t-1)       (b)")
+print()
+print("Types :          '2'          |                          '3'                             ")
+print("------------------------------|----------------------------------------------------------")
+print("f(t,x): source at p = 0.25 (c)| 10cos(10t)x^2(1-x)^2-(1 + sin(10t))(12x^2 - 12x + 2) (a2)")
+print("u0(x) :          N.A.         |                      x^2(1-x)^2                      (a2)")
+print("g1(t) :          N.A.         |                         N.A.                             ")
+print("g2(t) :          N.A.         |                         N.A.                             ")
+print()
+input_list = input("Please input f, u0, g1 and g2 types respectively, separated by commas: ")
 ftype, u0type, g1type, g2type = input_list.split(',')
+
 
 ftype = int(ftype)
 u0type = int(u0type)
@@ -462,13 +482,36 @@ g2type = int(g2type)
 # ---------------
 
 u = np.zeros((M+1, N+1))
+
 # Applying initial conditions functions
 for i in range(N):
-  u[0][i] = u0(i*deltax, u0type)
+    u[0,i] = u0(i*deltax, u0type)
+for k in range(M):
+    u[i,0] = g1(k*deltat, g1type)
+    u[i,N] = g2(k*deltat, g2type)
 
-x = np.linspace(0, 1, N+1)
-t = np.linspace(0, T, M+1)
+# Select method
+print()
+print("Method Number |       Method    ")
+print("--------------|-----------------")
+print("      0       | method11()      ")
+print("      1       | implicitEuler() ")
+print("      2       | crankNicholson()")
+print()
+method = input("Please input the number corresponding to the method you would like to use: ")
+print()
 
-result = method11(u, T, ftype)#, g1type, g2type)
+# Run methods
+method = int(method)
+if method == 0:
+    result = method11(u, T, ftype)
+elif method == 1:
+    result = implicitEuler(u, T, ftype, g1type, g2type)
+elif method == 2:
+    result = crankNicholson(u, T, ftype, g1type, g2type)
+else:
+    print("Invalid number.")
 
-plotgraphs(result)
+# Plot graphs
+tempGraphs(result)
+
