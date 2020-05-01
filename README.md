@@ -46,3 +46,4 @@ Deve-se simular com $N = 10, 20, 40, 80, 160, 320, 640$, e $T = 1$.
     Preparação para próximos itens: 
     * [x] Escrever eulerImplicitMethod().
     * [x] Determinar formula matricial de Crank Nicholson e escrever crankNicholson().
+
