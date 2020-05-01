@@ -91,12 +91,12 @@ def g2(t, type):
         g2 = np.exp(t-1)*np.cos(5*t)
     return g2
 
-def uexact(x, t, type):
+def uExact(x, t, type):
     """
     Describes the exact temperature at time t and distance x.
     Arguments:
         - t : time
-        -type : type of the function, specifies what uexact(x,t) should be
+        - type : type of the function, specifies what uexact(x,t) should be
          used at the function call
     """
     if type == 0:
@@ -384,7 +384,7 @@ def crankNicholson(u, T, ftype=0, g1type=0, g2type=0):
         - u : 2-dimensional array that stores the temperature at each
           position xi and time tk
         - T : time interval
-        - ftype : f(x,t) function type
+        - ftype : f(t,x) function type
         - g1type : g1(t) function type
         - g2type : g2(t) function type
     """
@@ -468,17 +468,36 @@ def error(u, T, utype):
 
     exact = np.zeros((N+1))
     for i in range(0, N+1):
-        exact[i] = uexact(i*deltax, T, utype)
+        exact[i] = uExact(i*deltax, T, utype)
 
     ultima = u[M]
-    print(ultima)
-    print(exact)
+
     errorarr = np.subtract(exact, ultima)
     error = np.amax(np.abs(errorarr))
-
-
     return error
 
+def truncError(u, utype):
+    """
+    Calculates the maximum truncating error of u(t,x) at k = M and i = N
+    Arguments
+        - deltat
+        - deltax
+        - utype: u(t,x) function type. In the problem description, there is 
+          an exact solution associated with each function f. Thus, when calling
+          this function, we will pass ftype as an argument.
+    """
+    M = u.shape[0] - 1
+    N = u.shape[1] - 1
+    deltax = 1/N
+    deltat = T/M
+
+    tau = np.zeros(N + 1)
+    for i in range(1, N):
+        tau[i] = (uExact((M+1)*deltat, i*deltax, utype) - uExact(M*deltat, i*deltax, utype))/deltat - (uExact(M*deltat, (i-1)*deltax, utype) - 2*uExact(M*deltat, i*deltax, utype) + uExact(M*deltat, (i+1)*deltax, utype))/(deltax**2) - f(M*deltat, i*deltax, utype)
+    
+    tau = np.amax(np.abs(tau))
+
+    return tau 
 
 # =================================
 # Simulations
@@ -573,3 +592,5 @@ else:
 tempGraphs(result)
 
 print("Error: ", error(u, T, ftype))
+print()
+print("Truncated error: ", truncError(u, ftype))
