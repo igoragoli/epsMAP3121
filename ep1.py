@@ -96,7 +96,7 @@ def uExact(x, t, type):
     Describes the exact temperature at time t and distance x.
     Arguments:
         - t : time
-        - type : type of the function, specifies what uexact(x,t) should be
+        - type : type of the function, specifies what uExact(x,t) should be
          used at the function call
     """
     if type == 0:
@@ -364,8 +364,8 @@ def implicitEuler(u, T, ftype=0, g1type=0, g2type=0):
         b = np.zeros((N-1,1))
         b[0] = u[k, 1] + deltat*f((k+1)*deltat, 1*deltax, ftype) + lbd*g1((k+1)*deltat, g1type)
         for l in range(1, N-2):
-            b[l] = u[k, l] + deltat*f((k+1)*deltat, (l+1)*deltax, ftype)
-        b[N-2] = u[k, N-1] + deltat*f((k+1)*deltat, (N-1)*deltax, ftype) + lbd*g2((k+1)*deltat, g1type)
+            b[l] = u[k, l+1] + deltat*f((k+1)*deltat, (l+1)*deltax, ftype)
+        b[N-2] = u[k, N-1] + deltat*f((k+1)*deltat, (N-1)*deltax, ftype) + lbd*g2((k+1)*deltat, g2type)
 
         # Solve Au = b, for time k+1
         u[k+1, 1:N] = solveLinearSystem(A,b)
@@ -384,7 +384,7 @@ def crankNicholson(u, T, ftype=0, g1type=0, g2type=0):
         - u : 2-dimensional array that stores the temperature at each
           position xi and time tk
         - T : time interval
-        - ftype : f(t,x) function type
+        - ftype : f(x,t) function type
         - g1type : g1(t) function type
         - g2type : g2(t) function type
     """
@@ -401,16 +401,14 @@ def crankNicholson(u, T, ftype=0, g1type=0, g2type=0):
         if i != N - 2:
             A[i, i+1] = A[i+1, i] = -lbd/2
 
-    bar = Bar("Running implicitEuler()", max=M)
-    for k in range(M):
-        # Construct independent array b
-        b = np.zeros((N-1,1))
-        b[0] = u[k, 1] + lbd/2*(g1((k+1)*deltat, g1type) + g1(k*deltat, g1type) + u[k, 2]) + deltat/2*(f(1*deltax, k*deltat, ftype) + f(1*deltax, (k+1)*deltat, ftype))
-        for l in range(1, N-2):
-            b[l-1] = u[k, l] + deltat*f(l*deltax, (k+1)*deltat, ftype)
-        b[N-2] = u[k, N-1] + lbd/2*(g2((k+1)*deltat, g2type) + g2(k*deltat, g2type) + u[k, N-2]) + deltat/2*(f((N-1)*deltax, k*deltat, ftype) + f((N-1)*deltax, (k+1)*deltat, ftype))
-
-        # Solve Au = b, for time k+1
+    bar = Bar("Running crankNicholson()", max=M)
+    b = np.zeros((N-1))
+    
+    for k in range (0, M):
+        b[0] = u[k, 1] + lbd/2*(g1((k+1)*deltat, g1type) + g1(k*deltat, g1type) - 2*u[k, 1] + u[k, 2]) + deltat/2*(f(k*deltat, 1*deltax, ftype) + f(k*deltat, 1*deltax, ftype))
+        for i in range (1,N-2):
+            b[i] = u[k, i+1] + lbd/2*(u[k, i]-2*u[k, i+1]+u[k, i+2]) + deltat/2*(f(k*deltat, (i+1)*deltax, ftype)+f((k+1)*deltat,(i+1)*deltax, ftype)) 
+        b[N-2] = u[k, N-1] + lbd/2*(g2((k+1)*deltat, g2type) + g2(k*deltat, g2type)- 2*u[k, N-1]+ u[k, N-2]) + deltat/2*(f(k*deltat, (N-1)*deltax, ftype) + f((k+1)*deltat, (N-1)*deltax, ftype))
         u[k+1, 1:N] = solveLinearSystem(A,b)
 
         bar.next()
@@ -438,6 +436,8 @@ def tempGraphs(u):
     
     plt.legend()
     plt.suptitle('Evolução da temperatura para variação de t')
+    plt.xlabel('Comprimento da barra')
+    plt.ylabel('Temperatura')
     evolucao = "evolucao N =" + str(N) + ".png"
     fig.savefig(evolucao)
     
@@ -445,6 +445,8 @@ def tempGraphs(u):
     y = u[M,...]
     x = np.linspace(0,N,N+1)*deltax
     plt.plot(x, y, label='t = T')
+    plt.xlabel('Comprimento da barra')
+    plt.ylabel('Temperatura')
     plt.suptitle('Temperatura em t = T')
     fig.legend()
     final = "final N =" + str(N) + ".png"
@@ -471,33 +473,34 @@ def error(u, T, utype):
         exact[i] = uExact(i*deltax, T, utype)
 
     ultima = u[M]
-
     errorarr = np.subtract(exact, ultima)
     error = np.amax(np.abs(errorarr))
+
+
     return error
 
-def truncError(u, utype):
+def truncError(u, ftype):
     """
-    Calculates the maximum truncating error of u(t,x) at k = M and i = N
-    Arguments
-        - deltat
-        - deltax
-        - utype: u(t,x) function type. In the problem description, there is 
-          an exact solution associated with each function f. Thus, when calling
-          this function, we will pass ftype as an argument.
+    Calculates the truncation error for each function.
+    Arguments:
+        - u : time x position temperature grid.
+        - ftype : f(x,t) and uExact(x,t) type.
     """
+
     M = u.shape[0] - 1
     N = u.shape[1] - 1
     deltax = 1/N
-    deltat = T/M
+    deltat = 1/M
 
-    tau = np.zeros(N + 1)
-    for i in range(1, N):
-        tau[i] = (uExact((M+1)*deltat, i*deltax, utype) - uExact(M*deltat, i*deltax, utype))/deltat - (uExact(M*deltat, (i-1)*deltax, utype) - 2*uExact(M*deltat, i*deltax, utype) + uExact(M*deltat, (i+1)*deltax, utype))/(deltax**2) - f(M*deltat, i*deltax, utype)
-    
-    tau = np.amax(np.abs(tau))
+    truncErr = np.zeros((M+1, N+1))
 
-    return tau 
+    for k in range(M+1):
+        for i in range(N+1):
+            truncErr[k,i] = (uExact(i*deltax, (k+1)*deltat, ftype) - uExact(i*deltax, k*deltat, ftype))/deltat - (uExact((i-1)*deltax, k*deltat,ftype) - 2*uExact(i*deltax, k*deltat, ftype)+ uExact((i+1)*deltax, k*deltat, ftype))/(deltax**2) - f(k*deltat, i*deltax, ftype)
+
+    maxError = np.amax(np.abs(truncErr))
+
+    return maxError            
 
 # =================================
 # Simulations
@@ -592,5 +595,14 @@ else:
 tempGraphs(result)
 
 print("Error: ", error(u, T, ftype))
-print()
-print("Truncated error: ", truncError(u, ftype))
+print("Truncation error: ", truncError(u, ftype))
+
+myfile = open("dados.txt", 'a')
+
+errorString = "Error with N = " + str(N) + ": " + str(error(u, T, ftype)) + "\n"
+truncErrorString = "Truncation error with N = " + str(N) + " and M = " + str(M) + ": " + str(truncError(u, ftype)) + "\n\n"
+
+myfile.write(errorString)
+myfile.write(truncErrorString)
+
+myfile.close()
