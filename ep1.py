@@ -33,7 +33,7 @@ def f(t, x, type):
     if type == 0: # First function on item (a)
         func = 10*x**2*(x - 1)- 60*x*t + 20*t # OK
     elif type == 1: # Item (b)
-        func = np.exp(t - x)*(25*t**2*np.cos(5*t*x))
+        func = np.exp(t - x)*(10*t*np.sin(5*t*x) - 25*t**2*np.cos(5*t*x))
     elif type == 2: # Item (c)
         r = 10000*(1 - 2*t**2)
         if np.abs(x - p) < h/2:
@@ -90,6 +90,25 @@ def g2(t, type):
     elif type == 1: # Items (b)
         g2 = np.exp(t-1)*np.cos(5*t)
     return g2
+
+def uexact(x, t, type):
+    """
+    Describes the exact temperature at time t and distance x.
+    Arguments:
+        - t : time
+        -type : type of the function, specifies what uexact(x,t) should be
+         used at the function call
+    """
+    if type == 0:
+        exact = 10*t * x**2 * (x-1)
+    elif type == 1:
+        exact = np.exp(t-x)*np.cos(5*t*x)
+    elif type == 2:
+        exact = 0
+    elif type == 3:
+        exact = (1 + np.sin(10*t)) * x**2 * (1-x)**2
+
+    return exact
 
 def LDLtDecomposition(diagonalA, subdiagonalA):
     """
@@ -386,13 +405,13 @@ def crankNicholson(u, T, ftype=0, g1type=0, g2type=0):
     for k in range(M):
         # Construct independent array b
         b = np.zeros((N-1,1))
-        b[0] = (1 - lbd)*u[1, k] + lbd/2*(g1((k+1)*deltat, g1type) + g1(k*deltat, g1type) + u[2, k]) + deltat/2*(f(1*deltax, k*deltat, ftype) + f(1*deltax, (k+1)*deltat, ftype))
+        b[0] = u[k, 1] + lbd/2*(g1((k+1)*deltat, g1type) + g1(k*deltat, g1type) + u[k, 2]) + deltat/2*(f(1*deltax, k*deltat, ftype) + f(1*deltax, (k+1)*deltat, ftype))
         for l in range(1, N-2):
-            b[l-1] = u[l, k] + deltat*f(l*deltax, (k+1)*deltat, ftype)
-        b[N-2] = (1 - lbd)*u[N-1, k] + lbd/2*(g2((k+1)*deltat, g2type) + g2(k*deltat, g2type) + u[N-2, k]) + deltat/2*(f((N-1)*deltax, k*deltat, ftype) + f((N-1)*deltax, (k+1)*deltat, ftype))
+            b[l-1] = u[k, l] + deltat*f(l*deltax, (k+1)*deltat, ftype)
+        b[N-2] = u[k, N-1] + lbd/2*(g2((k+1)*deltat, g2type) + g2(k*deltat, g2type) + u[k, N-2]) + deltat/2*(f((N-1)*deltax, k*deltat, ftype) + f((N-1)*deltax, (k+1)*deltat, ftype))
 
         # Solve Au = b, for time k+1
-        u[1:N, k+1] = solveLinearSystem(A,b)
+        u[k+1, 1:N] = solveLinearSystem(A,b)
 
         bar.next()
     bar.finish()
@@ -407,20 +426,59 @@ def tempGraphs(u):
         - u : time x position temperature grid.
     """
     M = u.shape[0] - 1
+    N = u.shape[1] - 1
+    deltax = 1/N
     step = int(M/10)
 
     fig = plt.figure()
     for i in range(0, M + 1, step):
-        plt.plot(u[i])
+        y = u[i,...]  
+        x = np.linspace(0,N,N+1)*deltax
+        plt.plot(x, y, label='t = ' + str(i/M))
+    
+    plt.legend()
     plt.suptitle('Evolução da temperatura para variação de t')
-    fig.savefig('evolucao.png')
+    evolucao = "evolucao N =" + str(N) + ".png"
+    fig.savefig(evolucao)
     
     fig = plt.figure()
-    plt.plot(u[M])
+    y = u[M,...]
+    x = np.linspace(0,N,N+1)*deltax
+    plt.plot(x, y, label='t = T')
     plt.suptitle('Temperatura em t = T')
-    fig.savefig('final.png')
+    fig.legend()
+    final = "final N =" + str(N) + ".png"
+    fig.savefig(final)
 
     plt.show()
+
+
+def error(u, T, utype):
+    """
+    Calculates the error of the temperature at time T for all the points.
+    Arguments:
+        - u : time x position temperature grid.
+        - T : end time
+        - utype : function type, it will determine what is the exact function.
+    """
+    M = u.shape[0] - 1
+    N = u.shape[1] - 1
+    deltax = 1/N
+    deltat = T/M
+
+    exact = np.zeros((N+1))
+    for i in range(0, N+1):
+        exact[i] = uexact(i*deltax, T, utype)
+
+    ultima = u[M]
+    print(ultima)
+    print(exact)
+    errorarr = np.subtract(exact, ultima)
+    error = np.amax(np.abs(errorarr))
+
+
+    return error
+
 
 # =================================
 # Simulations
@@ -513,3 +571,5 @@ else:
 
 # Plot graphs
 tempGraphs(result)
+
+print("Error: ", error(u, T, ftype))
