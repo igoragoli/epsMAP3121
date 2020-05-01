@@ -22,23 +22,23 @@
 Deve-se simular com $N = 10, 20, 40, 80, 160, 320, 640$, e $T = 1$.
 
 * a1) Para funções do item a1:
-    * [] Simular para $\lambda = 0.25$, $\lambda = 0.5$ e $\lambda = 0.51$. O que muda entre os casos? 
-    * [] Calcular o erro para cada $\lambda$. Qual é o comportamento do erro?
-    * [] Calcular o erro em T = 1 (deve ser nulo). 
-    * [] Verificar que a solução exata é $10tx^2(x-1)$
-    * [] Qual é o fator de redução esperado a cada refinamento de malha?
-    * [] Qual o número de passos necessários ao se usar $N = 640$? E se dobrarmos N?
+    * Simular para $\lambda = 0.25$, $\lambda = 0.5$ e $\lambda = 0.51$. O que muda entre os casos? 
+    * Calcular o erro para cada $\lambda$. Qual é o comportamento do erro?
+    * Calcular o erro em T = 1 (deve ser nulo). 
+    * Verificar que a solução exata é $10tx^2(x-1)$
+    * Qual é o fator de redução esperado a cada refinamento de malha?
+    * Qual o número de passos necessários ao se usar $N = 640$? E se dobrarmos N?
 
 * a2) Para funções do item a2, repetir o item a1):
-    * [] Repetir os experimentos de a1[]
+    * Repetir os experimentos de a1[]
 
 * b) Para funções do item b:
     * [x] Determinar as funções das condições de contorno.
-    * [] Repetir os experimentos de a1)
+    * Repetir os experimentos de a1)
 
 * Para funções do item c:
     * [x] Determinar f.
-    * [] Repetir os experimentos de a1)
+    * Repetir os experimentos de a1)
     
 #### 2. Segunda Tarefa
 * a) Escreva um procedimento que efetue a decomposicao $LDL^t$
@@ -46,4 +46,6 @@ Deve-se simular com $N = 10, 20, 40, 80, 160, 320, 640$, e $T = 1$.
     Preparação para próximos itens: 
     * [x] Escrever eulerImplicitMethod().
     * [x] Determinar formula matricial de Crank Nicholson e escrever crankNicholson().
+    * Repetir experimentos do item a1) com eulerImplicitMethod().
+    * Repetir experimentos do item a2) com crankNicholson().
 
