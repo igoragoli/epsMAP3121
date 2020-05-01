@@ -14,7 +14,7 @@
 8. [x] Change solveLinearSystem() to use LDL-1 decomp. instead of LU decomp
 9. [x] Deduce f, u0, g1, g2 for itens (a), (b) and (c) and complete their functions
 10. [x] Read all the fucking program and correct x <--> t for wrong functions
-
+ 
 ### Simulations
 
 #### 1. Primeira Tarefa
