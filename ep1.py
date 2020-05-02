@@ -33,7 +33,7 @@ def f(t, x, type):
     if type == 0: # First function on item (a)
         func = 10*x**2*(x - 1)- 60*x*t + 20*t # OK
     elif type == 1: # Item (b)
-        func = np.exp(t - x)*(10*t*np.sin(5*t*x) - 25*t**2*np.cos(5*t*x))
+        func = 5*(np.exp(t - x))*(5*t**2*np.cos(5*t*x) - np.sin(5*t*x)*(x + 2*t))
     elif type == 2: # Item (c)
         r = 10000*(1 - 2*t**2)
         if np.abs(x - p) < h/2:
@@ -53,7 +53,7 @@ def u0(x, type):
         - type: type of the function, specifies what u0(x) should be
           used at the function call
     """
-    if type == 0: # Items (a) and (c)
+    if type == 0 or type == 2: # Items (a) and (c)
         u0 = 0 # OK
     elif type == 1: # Item (b)
         u0 = np.exp(-x)
@@ -71,7 +71,7 @@ def g1(t, type):
         - type : type of the function, specifies what g1(t) should be
           used at the function call
     """
-    if type == 0 or type == 3: # Items (a) and (c)
+    if type == 0 or type == 3 or type == 2: # Items (a) and (c)
         g1 = 0 # OK
     elif type == 1: # Items (b)
         g1 = np.exp(t)
@@ -85,7 +85,7 @@ def g2(t, type):
         - type : type of the function, specifies what g2(t) should be
           used at the function call
     """
-    if type == 0 or type == 3: # Items (a) and (c)
+    if type == 0 or type == 3 or type == 2: # Items (a) and (c)
         g2 = 0 # OK
     elif type == 1: # Items (b)
         g2 = np.exp(t-1)*np.cos(5*t)
@@ -99,13 +99,13 @@ def uExact(x, t, type):
         - type : type of the function, specifies what uExact(x,t) should be
          used at the function call
     """
-    if type == 0:
+    if type == 0:  # First function of item (a)
         exact = 10*t * x**2 * (x-1)
     elif type == 1:
         exact = np.exp(t-x)*np.cos(5*t*x)
-    elif type == 2:
+    elif type == 2: 
         exact = 0
-    elif type == 3:
+    elif type == 3: # Second function of item (a)
         exact = (1 + np.sin(10*t)) * x**2 * (1-x)**2
 
     return exact
@@ -174,63 +174,6 @@ def LDLtDecomposition(diagonalA, subdiagonalA):
       Larr[i+1] = L[i+1, i]
 
     return(Darr, Larr)
-
-def permutationMatrix(A):
-    """
-    Returns the permutation matrix used in pivotal condensation.
-    Arguments:
-        - A: coefficient matrix
-    Returns:
-        - P: the permutation matrix
-    """
-
-    #The most efficient way to generate que permutation matrix is using gauss elimination,
-    #because with the multipliers we can refresh the matrix, therefore we can change the rows every time the multipliers are calculated
-
-    n = A.shape[0]
-    P = np.eye(n) # Generate the identity matrix
-
-    # It's necessary to apply the Gauss method on each row and column
-
-    for i in range(0, n):
-          greater = A[i, i]   # Defining the initial greater values
-          greaterRow = i
-
-          for j in range(i+1, n): # This "for" will find the greater value at column "i"
-                                  # So it can be swapped for future use in the Gauss method, generating more accurate results
-
-            if np.absolute(A[j, i]) > np.absolute(greater):
-                                  # If the value at the row "j" is greater than the stored, it's going to refresh
-                                  # the greater value, and in which row it is.
-              greater = A[j, i]
-              greaterRow = j
-
-          # Now, it's necessary to swap the "i" row with the row that has the greater element in column "i"
-
-          A[[i, greaterRow]] = A[[greaterRow, i]]
-          P[[i, greaterRow]] = P[[greaterRow, i]]
-
-          # And then, just apply the Gauss method for each row "j", starting at column "i + 1"
-
-          for j in range(i+1, n):
-            m = A[j, i] / A[i, i] # Calculating the multipliers
-                                  # It's necessary to keep 2 rows in "memory" every iteraction: i and j
-                                  # j is the row whose elements will be the minuends
-                                  # i is the row whose elements will be the subtrahends
-                                  # i will also be important as a column index
-
-            for k in range(i, n): # "k" is a index for the columns and will scan each element of the row, starting at column "i"
-
-              if i == k:
-                A[j, k] = 0       # If the element is directly under the diagonal at column "i", it's going to be zero.
-
-              elif i != k:
-                A[j, k] -= A[i, k] * m
-                                  # If the element is in any column, except "i", it's going to be subtracted by m * A[i, k]
-              else:
-                break # To avoid errors
-
-    return(P)   # Since the purpose of this function is to generate the permutation matrix, we will only return it and not the upper triangular matrix A.
 
 def solveLinearSystem(A,b):
     """
@@ -405,10 +348,10 @@ def crankNicholson(u, T, ftype=0, g1type=0, g2type=0):
     b = np.zeros((N-1))
     
     for k in range (0, M):
-        b[0] = u[k, 1] + lbd/2*(g1((k+1)*deltat, g1type) + g1(k*deltat, g1type) - 2*u[k, 1] + u[k, 2]) + deltat/2*(f(k*deltat, 1*deltax, ftype) + f(k*deltat, 1*deltax, ftype))
+        b[0] = u[k, 1]*(1-lbd) + lbd/2*(g1(k*deltat, g1type) + g1((k+1)*deltat, g1type) + u[k, 2]) + (deltat/2)*(f((k+1)*deltat, 1*deltax, ftype) + f(k*deltat, 1*deltax, ftype))
         for i in range (1,N-2):
-            b[i] = u[k, i+1] + lbd/2*(u[k, i]-2*u[k, i+1]+u[k, i+2]) + deltat/2*(f(k*deltat, (i+1)*deltax, ftype)+f((k+1)*deltat,(i+1)*deltax, ftype)) 
-        b[N-2] = u[k, N-1] + lbd/2*(g2((k+1)*deltat, g2type) + g2(k*deltat, g2type)- 2*u[k, N-1]+ u[k, N-2]) + deltat/2*(f(k*deltat, (N-1)*deltax, ftype) + f((k+1)*deltat, (N-1)*deltax, ftype))
+            b[i] = u[k, i+1]*(1-lbd) + lbd/2*(u[k, i]+u[k, i+2]) + (deltat/2)*(f(k*deltat, (i+1)*deltax, ftype)+f((k+1)*deltat,(i+1)*deltax, ftype)) 
+        b[N-2] = u[k, N-1]*(1-lbd) + lbd/2*(g2((k+1)*deltat, g2type) + g2(k*deltat, g2type)+ u[k, N-2]) + deltat/2*(f(k*deltat, (N-1)*deltax, ftype) + f((k+1)*deltat, (N-1)*deltax, ftype))
         u[k+1, 1:N] = solveLinearSystem(A,b)
 
         bar.next()
@@ -468,13 +411,17 @@ def error(u, T, utype):
     deltax = 1/N
     deltat = T/M
 
+    bar = Bar("Calculating error", max=N+1)
     exact = np.zeros((N+1))
+    
     for i in range(0, N+1):
         exact[i] = uExact(i*deltax, T, utype)
+        bar.next()
+    bar.finish()
 
-    ultima = u[M]
-    errorarr = np.subtract(exact, ultima)
-    error = np.amax(np.abs(errorarr))
+    lastRow = u[M]
+    errorArr = np.subtract(exact, lastRow)
+    error = np.amax(np.abs(errorArr))
 
 
     return error
@@ -485,6 +432,7 @@ def truncError(u, ftype):
     Arguments:
         - u : time x position temperature grid.
         - ftype : f(x,t) and uExact(x,t) type.
+    WARNING: THIS FUNCTION MIGHT BE WRONG! WE HAVE TO CHECK IT'S BEHAVIOR!
     """
 
     M = u.shape[0] - 1
@@ -494,9 +442,12 @@ def truncError(u, ftype):
 
     truncErr = np.zeros((M+1, N+1))
 
+    bar = Bar("Calculating truncation error", max=M+1)
     for k in range(M+1):
         for i in range(N+1):
             truncErr[k,i] = (uExact(i*deltax, (k+1)*deltat, ftype) - uExact(i*deltax, k*deltat, ftype))/deltat - (uExact((i-1)*deltax, k*deltat,ftype) - 2*uExact(i*deltax, k*deltat, ftype)+ uExact((i+1)*deltax, k*deltat, ftype))/(deltax**2) - f(k*deltat, i*deltax, ftype)
+        bar.next()
+    bar.finish()
 
     maxError = np.amax(np.abs(truncErr))
 
@@ -534,12 +485,12 @@ lbd = deltat/deltax**2 # Lambda
 
 # Select functions
 print()
-print("Types :           '0'               |             '1'            ")
-print("------------------------------------|----------------------------")
-print("f(t,x): 10x^2(x-1) - 60xt + 20t (a1)|e^(t - x)*25t^2*cos(5tx) (b)")
-print("u0(x) :            0         (a1, c)|           e^(-x)        (b)")
-print("g1(t) :            0     (a1, a2, c)|           e^(t)         (b)")
-print("g2(t) :            0     (a1, a2, c)|           e^(t-1)       (b)")
+print("Types :           '0'               |                        '1'                        ")
+print("------------------------------------|---------------------------------------------------")
+print("f(t,x): 10x^2(x-1) - 60xt + 20t (a1)| 5e^(t - x)*(5t^2*cos(5tx) - sin(5tx)*(x + 2t)) (b)")
+print("u0(x) :            0         (a1, c)|                      e^(-x)                    (b)")
+print("g1(t) :            0     (a1, a2, c)|                      e^(t)                     (b)")
+print("g2(t) :            0     (a1, a2, c)|                      e^(t-1)                   (b)")
 print()
 print("Types :          '2'          |                          '3'                             ")
 print("------------------------------|----------------------------------------------------------")
@@ -563,11 +514,12 @@ g2type = int(g2type)
 u = np.zeros((M+1, N+1))
 
 # Applying initial conditions functions
-for i in range(N):
+for i in range(N+1):
     u[0,i] = u0(i*deltax, u0type)
-for k in range(M):
-    u[i,0] = g1(k*deltat, g1type)
-    u[i,N] = g2(k*deltat, g2type)
+    
+for k in range(M+1):
+    u[k,0] = g1(k*deltat, g1type)
+    u[k,N] = g2(k*deltat, g2type)
 
 # Select method
 print()
@@ -591,18 +543,22 @@ elif method == 2:
 else:
     print("Invalid number.")
 
+
 # Plot graphs
 tempGraphs(result)
 
-print("Error: ", error(u, T, ftype))
-print("Truncation error: ", truncError(u, ftype))
+if(ftype != 2):
+    totalError = error(u, T, ftype)
+    truncationError = truncError(u, ftype)
+    print("Error: ", totalError)
+    print("Truncation error: ", truncationError)
 
-myfile = open("dados.txt", 'a')
+    myfile = open("dados.txt", 'a')
 
-errorString = "Error with N = " + str(N) + ": " + str(error(u, T, ftype)) + "\n"
-truncErrorString = "Truncation error with N = " + str(N) + " and M = " + str(M) + ": " + str(truncError(u, ftype)) + "\n\n"
+    errorString = "Error with N = " + str(N) + ": " + str(totalError) + "\n"
+    truncErrorString = "Truncation error with N = " + str(N) + " and M = " + str(M) + ": " + str(truncationError) + "\n\n"
 
-myfile.write(errorString)
-myfile.write(truncErrorString)
+    myfile.write(errorString)
+    myfile.write(truncErrorString)
 
-myfile.close()
+    myfile.close()
