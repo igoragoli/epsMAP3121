@@ -381,7 +381,8 @@ def tempGraphs(u):
     plt.suptitle('Evolução da temperatura para variação de t')
     plt.xlabel('Comprimento da barra')
     plt.ylabel('Temperatura')
-    evolucao = "evolucao N =" + str(N) + ".png"
+    lbd = 0.25 # Check this before simulating!
+    evolucao = "evolucao N = " + str(N) + " lbd = " + str(lbd) + ".png"
     fig.savefig(evolucao)
     
     fig = plt.figure()
@@ -392,11 +393,10 @@ def tempGraphs(u):
     plt.ylabel('Temperatura')
     plt.suptitle('Temperatura em t = T')
     fig.legend()
-    final = "final N =" + str(N) + ".png"
+    final = "final N = " + str(N) + " lbd = " + str(lbd) + ".png"
     fig.savefig(final)
 
     plt.show()
-
 
 def error(u, T, utype):
     """
@@ -450,8 +450,9 @@ def truncError(u, ftype):
     bar.finish()
 
     maxError = np.amax(np.abs(truncErr))
+    maxErrorWhenTIs1 = np.amax(np.abs(truncErr[M,:]))
 
-    return maxError            
+    return maxErrorWhenTIs1            
 
 # =================================
 # Simulations
