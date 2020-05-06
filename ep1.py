@@ -369,6 +369,9 @@ def tempGraphs(u):
     M = u.shape[0] - 1
     N = u.shape[1] - 1
     deltax = 1/N
+    deltat = 1/M
+    lbd = deltat/deltax**2 # 
+    
     step = int(M/10)
 
     fig = plt.figure()
@@ -378,22 +381,21 @@ def tempGraphs(u):
         plt.plot(x, y, label='t = ' + str(i/M))
     
     plt.legend()
-    plt.suptitle('Evolução da temperatura para variação de t')
+    plt.suptitle('Evolução da temperatura u(t,x) com o tempo t')
     plt.xlabel('Comprimento da barra')
     plt.ylabel('Temperatura')
-    lbd = 0.25 # Check this before simulating!
-    evolucao = "evolucao N = " + str(N) + " lbd = " + str(lbd) + ".png"
+    evolucao = "evoluN=" + str(N) + "M=" + str(M) + ".png"
     fig.savefig(evolucao)
     
     fig = plt.figure()
     y = u[M,...]
     x = np.linspace(0,N,N+1)*deltax
-    plt.plot(x, y, label='t = T')
+    plt.plot(x, y, label='Temperatura com t = T')
     plt.xlabel('Comprimento da barra')
     plt.ylabel('Temperatura')
     plt.suptitle('Temperatura em t = T')
     fig.legend()
-    final = "final N = " + str(N) + " lbd = " + str(lbd) + ".png"
+    final = "finalN=" + str(N) + "M=" + str(M) + ".png"
     fig.savefig(final)
 
     plt.show()
@@ -440,19 +442,18 @@ def truncError(u, ftype):
     deltax = 1/N
     deltat = 1/M
 
-    truncErr = np.zeros((M+1, N+1))
+    truncErr = np.zeros(N+1)
 
-    bar = Bar("Calculating truncation error", max=M+1)
-    for k in range(M+1):
-        for i in range(N+1):
-            truncErr[k,i] = (uExact(i*deltax, (k+1)*deltat, ftype) - uExact(i*deltax, k*deltat, ftype))/deltat - (uExact((i-1)*deltax, k*deltat,ftype) - 2*uExact(i*deltax, k*deltat, ftype)+ uExact((i+1)*deltax, k*deltat, ftype))/(deltax**2) - f(k*deltat, i*deltax, ftype)
+    bar = Bar("Calculating truncation error", max=N+1)
+    k = M
+    for i in range(N+1):
+        truncErr[i] = (uExact(i*deltax, (k+1)*deltat, ftype) - uExact(i*deltax, k*deltat, ftype))/deltat - (uExact((i-1)*deltax, k*deltat,ftype) - 2*uExact(i*deltax, k*deltat, ftype)+ uExact((i+1)*deltax, k*deltat, ftype))/(deltax**2) - f(k*deltat, i*deltax, ftype)
         bar.next()
     bar.finish()
 
     maxError = np.amax(np.abs(truncErr))
-    maxErrorWhenTIs1 = np.amax(np.abs(truncErr[M,:]))
 
-    return maxErrorWhenTIs1            
+    return maxError       
 
 # =================================
 # Simulations
@@ -556,7 +557,7 @@ if(ftype != 2):
 
     myfile = open("dados.txt", 'a')
 
-    errorString = "Error with N = " + str(N) + ": " + str(totalError) + "\n"
+    errorString = "Error with N = " + str(N) + " and M = " + str(M) + ":            " + str(totalError) + "\n"
     truncErrorString = "Truncation error with N = " + str(N) + " and M = " + str(M) + ": " + str(truncationError) + "\n\n"
 
     myfile.write(errorString)
