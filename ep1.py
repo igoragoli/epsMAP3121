@@ -352,7 +352,8 @@ def tempGraphs(u):
     Plots graphs related to the temperature: the evolution of the temperature in the bar through time, 
     and the temperature at t = T.
     Arguments:
-        - u : time x position temperature grid.
+        - u : 2-dimensional array that stores the temperature at each
+          position xi and time tk
     """
     M = u.shape[0] - 1
     N = u.shape[1] - 1
@@ -390,7 +391,8 @@ def errorNorm(k, u, T, utype):
     """
     Calculates the norm of the error of the temperature at the instant tk = k*deltaT.
     Arguments:
-        - u : time x position temperature grid.
+        - u : 2-dimensional array that stores the temperature at each
+          position xi and time tk
         - T : end time
         - utype : function type, it will determine what is the exact function.
     """
@@ -413,11 +415,12 @@ def errorNorm(k, u, T, utype):
 
     return errorNorm
 
-def truncError(u, ftype):
+def truncErrorNorm(u, ftype):
     """
-    Calculates the norm of the truncation error for each function at t = T.
+    Calculates the norm of the truncation error for each function at all points.
     Arguments:
-        - u : time x position temperature grid.
+        - u : 2-dimensional array that stores the temperature at each
+          position xi and time tk
         - ftype : f(x,t) and uExact(x,t) type.
     WARNING: THIS FUNCTION MIGHT BE WRONG! WE HAVE TO CHECK IT'S BEHAVIOR!
     """
