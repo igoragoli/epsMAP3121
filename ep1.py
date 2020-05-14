@@ -386,9 +386,9 @@ def tempGraphs(u):
 
     plt.show()
 
-def errorNorm(u, T, utype):
+def errorNorm(k, u, T, utype):
     """
-    Calculates the norm of the error of the temperature at time t = T for all the points.
+    Calculates the norm of the error of the temperature at the instant tk = k*deltaT.
     Arguments:
         - u : time x position temperature grid.
         - T : end time
@@ -400,15 +400,15 @@ def errorNorm(u, T, utype):
     deltat = T/M
 
     bar = Bar("Calculating error norm", max=N+1)
-    exact = np.zeros((N+1))
+    exactSolution = np.zeros((N+1))
     
     for i in range(0, N+1):
-        exact[i] = uExact(i*deltax, T, utype)
+        exactSolution[i] = uExact(i*deltax, k*deltat, utype)
         bar.next()
     bar.finish()
 
-    lastRow = u[M]
-    errorNormArr = np.subtract(exact, lastRow)
+    approximation = u[k]
+    errorNormArr = np.subtract(exactSolution, approximation)
     errorNorm = np.amax(np.abs(errorNormArr))
 
     return errorNorm
@@ -532,7 +532,7 @@ else:
 
 # Plot graphs
 tempGraphs(result)
-
+"""
 if (ftype != 2):
     totalError = errorNorm(u, T, ftype)
     truncationError = truncError(u, ftype)
@@ -548,3 +548,4 @@ if (ftype != 2):
     myfile.write(truncErrorString)
 
     myfile.close()
+"""
