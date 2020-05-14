@@ -357,7 +357,6 @@ def tempGraphs(u):
     M = u.shape[0] - 1
     N = u.shape[1] - 1
     deltax = 1/N
-    deltat = 1/M
 
     step = int(M/10)
 
@@ -387,7 +386,7 @@ def tempGraphs(u):
 
     plt.show()
 
-def error(u, T, utype):
+def errorNorm(u, T, utype):
     """
     Calculates the norm of the error of the temperature at time t = T for all the points.
     Arguments:
@@ -400,7 +399,7 @@ def error(u, T, utype):
     deltax = 1/N
     deltat = T/M
 
-    bar = Bar("Calculating error", max=N+1)
+    bar = Bar("Calculating error norm", max=N+1)
     exact = np.zeros((N+1))
     
     for i in range(0, N+1):
@@ -409,10 +408,10 @@ def error(u, T, utype):
     bar.finish()
 
     lastRow = u[M]
-    errorArr = np.subtract(exact, lastRow)
-    error = np.amax(np.abs(errorArr))
+    errorNormArr = np.subtract(exact, lastRow)
+    errorNorm = np.amax(np.abs(errorNormArr))
 
-    return error
+    return errorNorm
 
 def truncError(u, ftype):
     """
@@ -535,9 +534,9 @@ else:
 tempGraphs(result)
 
 if (ftype != 2):
-    totalError = error(u, T, ftype)
+    totalError = errorNorm(u, T, ftype)
     truncationError = truncError(u, ftype)
-    print("Error: ", totalError)
+    print("Absolute error norm at t = T: ", totalError)
     print("Truncation error: ", truncationError)
 
     myfile = open("dados.txt", 'a')
