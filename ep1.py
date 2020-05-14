@@ -238,9 +238,9 @@ def solveLinearSystem(A,b):
 # Iterative Methods
 # ---------------
 
-def method11(u, T, ftype=0):
+def explicitFD(u, T, ftype=0):
     """
-    Iterative method described by equation (11) in the problem description.
+    Explicit finite differences method, described by equation (11) in the problem description.
     It calculates the evolution of u(x,t) in time for all (xi,tk) interior
     elements.
     Arguments:
@@ -254,7 +254,7 @@ def method11(u, T, ftype=0):
     deltat = T/M
     deltax = 1/N
 
-    bar = Bar("Running method11()", max=M)
+    bar = Bar("Running explicitFD()", max=M)
     for k in range(M):
         for i in range(1, N):
             u[k+1, i] = u[k, i] + deltat*((u[k, i-1] - 2*u[k, i] + u[k, i+1])/deltax**2 + f(k*deltat, i*deltax, ftype))
@@ -306,7 +306,7 @@ def implicitEuler(u, T, ftype=0, g1type=0, g2type=0):
 
     return u
 
-def crankNicholson(u, T, ftype=0, g1type=0, g2type=0):
+def crankNicolson(u, T, ftype=0, g1type=0, g2type=0):
     """
     The crank Nicholson method is described by equation (35) in the problem description.
     In a similar manner to the implicit Euler method, it calculates the evolution of u(x,t).
@@ -332,7 +332,7 @@ def crankNicholson(u, T, ftype=0, g1type=0, g2type=0):
         if i != N - 2:
             A[i, i+1] = A[i+1, i] = -lbd/2
 
-    bar = Bar("Running crankNicholson()", max=M)
+    bar = Bar("Running crankNicolson()", max=M)
     b = np.zeros((N-1))
     
     for k in range (0, M):
@@ -512,9 +512,9 @@ for k in range(M+1):
 print()
 print("Method Number |       Method    ")
 print("--------------|-----------------")
-print("      0       | method11()      ")
+print("      0       | explicitFD()    ")
 print("      1       | implicitEuler() ")
-print("      2       | crankNicholson()")
+print("      2       | crankNicolson() ")
 print()
 method = input("Please input the number corresponding to the method you would like to use: ")
 print()
@@ -522,11 +522,11 @@ print()
 # Run methods
 method = int(method)
 if method == 0:
-    result = method11(u, T, ftype)
+    result = explicitFD(u, T, ftype)
 elif method == 1:
     result = implicitEuler(u, T, ftype, g1type, g2type)
 elif method == 2:
-    result = crankNicholson(u, T, ftype, g1type, g2type)
+    result = crankNicolson(u, T, ftype, g1type, g2type)
 else:
     print("Invalid number.")
 
