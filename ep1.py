@@ -31,7 +31,7 @@ def f(t, x, type):
     h = deltax
 
     if type == 0: # First function on item (a)
-        func = 10*x**2*(x - 1)- 60*x*t + 20*t # OK
+        func = 10*x**2*(x - 1)- 60*x*t + 20*t 
     elif type == 1: # Item (b)
         func = 5*(np.exp(t - x))*(5*t**2*np.cos(5*t*x) - np.sin(5*t*x)*(x + 2*t))
     elif type == 2: # Item (c)
@@ -54,11 +54,11 @@ def u0(x, type):
           used at the function call
     """
     if type == 0 or type == 2: # Items (a) and (c)
-        u0 = 0 # OK
+        u0 = 0 
     elif type == 1: # Item (b)
         u0 = np.exp(-x)
     elif type == 3: # Second function of item (a)
-      u0 = x**2 * (1-x)**2
+        u0 = x**2 * (1-x)**2
     return u0
 
 # g1(t) and g2(t) are Dirichlet boundary conditions, describing the
@@ -72,8 +72,8 @@ def g1(t, type):
           used at the function call
     """
     if type == 0 or type == 3 or type == 2: # Items (a) and (c)
-        g1 = 0 # OK
-    elif type == 1: # Items (b)
+        g1 = 0 
+    elif type == 1: # Item (b)
         g1 = np.exp(t)
     return g1
 
@@ -86,8 +86,8 @@ def g2(t, type):
           used at the function call
     """
     if type == 0 or type == 3 or type == 2: # Items (a) and (c)
-        g2 = 0 # OK
-    elif type == 1: # Items (b)
+        g2 = 0 
+    elif type == 1: # Item (b)
         g2 = np.exp(t-1)*np.cos(5*t)
     return g2
 
@@ -101,10 +101,8 @@ def uExact(x, t, type):
     """
     if type == 0:  # First function of item (a)
         exact = 10*t * x**2 * (x-1)
-    elif type == 1:
+    elif type == 1: # Item (b)
         exact = np.exp(t-x)*np.cos(5*t*x)
-    elif type == 2: 
-        exact = 0
     elif type == 3: # Second function of item (a)
         exact = (1 + np.sin(10*t)) * x**2 * (1-x)**2
 
@@ -197,15 +195,6 @@ def solveLinearSystem(A,b):
     for i in range(n-1):
       subdiagA[i+1] = A[i+1, i]
 
-    # Get lower triangular matrix L and upper triangular matrix U
-
-    #P = permutationMatrix(A)
-    #A = np.dot(P, A)
-    #A = np.dot(A, P.transpose())
-    #b = np.dot(P,b)
-    # Note: I don't think it's necessary to permutate the matrix, since A is symmetric and tridiagonal
-    # The permutation only applies for the LU decomposition
-
     diagD, subdiagL = LDLtDecomposition(diagA, subdiagA)    # Now we can decompose A into 2 arrays: D and L
                                                             # diagD will represent the diagonal on a diagonal matrix, D
                                                             # subdiagL will represent the subdiagonal on a bidiagonal matrix L
@@ -248,7 +237,7 @@ def solveLinearSystem(A,b):
 # ---------------
 # Iterative Methods
 # ---------------
-# x <--> t CORRECTED
+
 def method11(u, T, ftype=0):
     """
     Iterative method described by equation (11) in the problem description.
@@ -274,7 +263,6 @@ def method11(u, T, ftype=0):
 
     return u
 
-# x <--> t CORRECTED
 def implicitEuler(u, T, ftype=0, g1type=0, g2type=0):
     """
     The implicit Euler method is described by equation (29) in the problem description.
@@ -370,8 +358,7 @@ def tempGraphs(u):
     N = u.shape[1] - 1
     deltax = 1/N
     deltat = 1/M
-    lbd = deltat/deltax**2 # 
-    
+
     step = int(M/10)
 
     fig = plt.figure()
@@ -402,7 +389,7 @@ def tempGraphs(u):
 
 def error(u, T, utype):
     """
-    Calculates the error of the temperature at time T for all the points.
+    Calculates the norm of the error of the temperature at time t = T for all the points.
     Arguments:
         - u : time x position temperature grid.
         - T : end time
@@ -425,12 +412,11 @@ def error(u, T, utype):
     errorArr = np.subtract(exact, lastRow)
     error = np.amax(np.abs(errorArr))
 
-
     return error
 
 def truncError(u, ftype):
     """
-    Calculates the truncation error for each function.
+    Calculates the norm of the truncation error for each function at t = T.
     Arguments:
         - u : time x position temperature grid.
         - ftype : f(x,t) and uExact(x,t) type.
@@ -445,9 +431,8 @@ def truncError(u, ftype):
     truncErr = np.zeros(N+1)
 
     bar = Bar("Calculating truncation error", max=N+1)
-    k = M
-    for i in range(N+1):
-        truncErr[i] = (uExact(i*deltax, (k+1)*deltat, ftype) - uExact(i*deltax, k*deltat, ftype))/deltat - (uExact((i-1)*deltax, k*deltat,ftype) - 2*uExact(i*deltax, k*deltat, ftype)+ uExact((i+1)*deltax, k*deltat, ftype))/(deltax**2) - f(k*deltat, i*deltax, ftype)
+    for i in range(1,N):
+        truncErr[i] = (uExact(i*deltax, (M+1)*deltat, ftype) - uExact(i*deltax, M*deltat, ftype))/deltat - (uExact((i-1)*deltax, M*deltat, ftype) - 2*uExact(i*deltax, M*deltat, ftype) + uExact((i+1)*deltax, M*deltat, ftype))/(deltax**2) - f(M*deltat, i*deltax, ftype)
         bar.next()
     bar.finish()
 
@@ -549,7 +534,7 @@ else:
 # Plot graphs
 tempGraphs(result)
 
-if(ftype != 2):
+if (ftype != 2):
     totalError = error(u, T, ftype)
     truncationError = truncError(u, ftype)
     print("Error: ", totalError)
