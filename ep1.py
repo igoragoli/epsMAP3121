@@ -91,12 +91,12 @@ def g2(t, type):
         g2 = np.exp(t-1)*np.cos(5*t)
     return g2
 
-def uExact(x, t, type):
+def uExact(t, x, type):
     """
     Describes the exact temperature at time t and distance x.
     Arguments:
         - t : time
-        - type : type of the function, specifies what uExact(x,t) should be
+        - type : type of the function, specifies what uExact(t,x) should be
          used at the function call
     """
     if type == 0:  # First function of item (a)
@@ -389,11 +389,12 @@ def tempGraphs(u):
 
 def errorNorm(k, u, T, utype):
     """
-    Calculates the norm of the error of the temperature at the instant tk = k*deltaT.
+    Calculates the norm of the absolute error at the instant tk = k*deltaT.
     Arguments:
+        - k
         - u : 2-dimensional array that stores the temperature at each
           position xi and time tk
-        - T : end time
+        - T : time period
         - utype : function type, it will determine what is the exact function.
     """
     M = u.shape[0] - 1
@@ -401,11 +402,11 @@ def errorNorm(k, u, T, utype):
     deltax = 1/N
     deltat = T/M
 
-    bar = Bar("Calculating error norm", max=N+1)
+    bar = Bar("Calculating error norm at k = " + str(k), max=N+1)
     exactSolution = np.zeros((N+1))
     
     for i in range(0, N+1):
-        exactSolution[i] = uExact(i*deltax, k*deltat, utype)
+        exactSolution[i] = uExact(k*deltat, i*deltax, utype)
         bar.next()
     bar.finish()
 
@@ -415,32 +416,42 @@ def errorNorm(k, u, T, utype):
 
     return errorNorm
 
-def truncErrorNorm(u, ftype):
+def truncErrorNorm(k, u, T, ftype, met):
     """
-    Calculates the norm of the truncation error for each function at all points.
+    Calculates the norm of the truncation error at the instant t = tk.
     Arguments:
+        - k
         - u : 2-dimensional array that stores the temperature at each
           position xi and time tk
-        - ftype : f(x,t) and uExact(x,t) type.
-    WARNING: THIS FUNCTION MIGHT BE WRONG! WE HAVE TO CHECK IT'S BEHAVIOR!
+        - T : time period
+        - ftype : f(x,t) and uExact(t,x) type.
+        - met : method used
     """
 
     M = u.shape[0] - 1
     N = u.shape[1] - 1
     deltax = 1/N
-    deltat = 1/M
+    deltat = T/M
 
-    truncErr = np.zeros(N+1)
+    truncError = np.zeros(N+1)
 
-    bar = Bar("Calculating truncation error", max=N+1)
-    for i in range(1,N):
-        truncErr[i] = (uExact(i*deltax, (M+1)*deltat, ftype) - uExact(i*deltax, M*deltat, ftype))/deltat - (uExact((i-1)*deltax, M*deltat, ftype) - 2*uExact(i*deltax, M*deltat, ftype) + uExact((i+1)*deltax, M*deltat, ftype))/(deltax**2) - f(M*deltat, i*deltax, ftype)
-        bar.next()
-    bar.finish()
+    # All the calculations start at 1 and finish at N-1. The truncation error cannot be calculated at the boundaries.
+    if met == 0 : # Explicit Finite Difference Method
+        for i in range(1,N): 
+            truncError[i] = (uExact((k+1)*deltat, i*deltax, ftype) - uExact(k*deltat, i*deltax, ftype))/deltat - (uExact(k*deltat, (i-1)*deltax, ftype) - 2*uExact(k*deltat, i*deltax, ftype) + uExact(k*deltat, (i+1)*deltax, ftype))/(deltax**2) - f(k*deltat, i*deltax, ftype)
+    elif met == 1 : # Implicit Euler Method
+        for i in range(1,N): # Starts at 1 and finishes at N-1. The truncation error cannot be calculated at the boundaries.
+            truncError[i] = (uExact((k+1)*deltat, i*deltax, ftype) - uExact(k*deltat, i*deltax, ftype))/deltat - (uExact((k+1)*deltat, (i-1)*deltax, ftype) - 2*uExact((k+1)*deltat, i*deltax, ftype) + uExact((k+1)*deltat, (i+1)*deltax, ftype))/(deltax**2) - f((k+1)*deltat, i*deltax, ftype)
+    elif met == 2 : # Crank-Nicolson Method
+         for i in range(1,N):
+            aux1 = (uExact((k+1)*deltat, i*deltax, ftype) - uExact(k*deltat, i*deltax, ftype))/deltat 
+            aux2 = ((uExact((k+1)*deltat, (i-1)*deltax, ftype) - 2*uExact((k+1)*deltat, i*deltax, ftype) + uExact((k-1)*deltat, (i+1)*deltax, ftype)) - (uExact(k*deltat, (i-1)*deltax, ftype) - 2*uExact(k*deltat, i*deltax, ftype) + u(k*deltat, (i+1)*deltax, ftype)))/(2*deltax**2)
+            aux3 = (1/2)*(f(k*deltat, i*deltax, ftype) + f((k+1)*deltat, i*deltax, ftype))
+            truncError[i] = aux1 - aux2 - aux3
 
-    maxError = np.amax(np.abs(truncErr))
+    truncErrorNorm = np.amax(np.abs(truncError))
 
-    return maxError       
+    return truncErrorNorm    
 
 # =================================
 # Simulations
