@@ -569,17 +569,17 @@ else:
 
 if (ftype != 2):
     # Create learning curve
-    errorNorms = np.zeros((M,1))
-    truncErrorNorms = np.zeros((M,1))
+    errorNorms = np.zeros((M+1,1))
+    truncErrorNorms = np.zeros((M+1,1))
 
     bar = Bar("Calculating error norms", max=M)
-    for k in range(M):
+    for k in range(M+1):
         errorNorms[k] = errorNorm(k, u, T, ftype)
         truncErrorNorms[k] = truncErrorNorm(k, u, T, ftype, method)
         bar.next()
     bar.finish()
 
-    resErrorNorm = errorNorms[M-1] # Error norm "result". We want the error norm at t = T
+    resErrorNorm = errorNorms[M, 0] # Error norm "result". We want the error norm at t = T
     resTruncErrorNorm = np.amax(truncErrorNorms) # Truncation error norm "result". We want the maximum truncation error at all times
     
     print("Absolute error norm at t = T       : ", resErrorNorm)
