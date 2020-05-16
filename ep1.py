@@ -387,7 +387,26 @@ def tempGraphs(u):
 
     plt.show()
 
-def errorNorm(k, u, T, utype):
+def errorGraph(e):
+    """
+    Plots an error graph according to the error vector e
+    Arguments:
+        - e : error array, of size M
+    """
+    M = e.shape[0]
+    k = np.arange(M)
+
+    fig = plt.figure()
+    plt.plot(k, e, label='Erro ')
+    plt.legend()
+    plt.suptitle('Evolução do erro com a iteração k')
+    plt.xlabel('Número da iteração')
+    plt.ylabel('Erro')
+    #evolucao = "evoluN=" + str(N) + "M=" + str(M) + ".png"
+    #fig.savefig(evolucao)
+    plt.show()
+
+def errorNorm(k, u, T, ftype):
     """
     Calculates the norm of the absolute error at the instant tk = k*deltaT.
     Arguments:
@@ -402,13 +421,10 @@ def errorNorm(k, u, T, utype):
     deltax = 1/N
     deltat = T/M
 
-    bar = Bar("Calculating error norm at k = " + str(k), max=N+1)
     exactSolution = np.zeros((N+1))
     
     for i in range(0, N+1):
-        exactSolution[i] = uExact(k*deltat, i*deltax, utype)
-        bar.next()
-    bar.finish()
+        exactSolution[i] = uExact(k*deltat, i*deltax, ftype)
 
     approximation = u[k]
     errorNormArr = np.subtract(exactSolution, approximation)
@@ -445,7 +461,7 @@ def truncErrorNorm(k, u, T, ftype, met):
     elif met == 2 : # Crank-Nicolson Method
          for i in range(1,N):
             aux1 = (uExact((k+1)*deltat, i*deltax, ftype) - uExact(k*deltat, i*deltax, ftype))/deltat 
-            aux2 = ((uExact((k+1)*deltat, (i-1)*deltax, ftype) - 2*uExact((k+1)*deltat, i*deltax, ftype) + uExact((k-1)*deltat, (i+1)*deltax, ftype)) - (uExact(k*deltat, (i-1)*deltax, ftype) - 2*uExact(k*deltat, i*deltax, ftype) + u(k*deltat, (i+1)*deltax, ftype)))/(2*deltax**2)
+            aux2 = ((uExact((k+1)*deltat, (i-1)*deltax, ftype) - 2*uExact((k+1)*deltat, i*deltax, ftype) + uExact((k+1)*deltat, (i+1)*deltax, ftype)) + (uExact(k*deltat, (i-1)*deltax, ftype) - 2*uExact(k*deltat, i*deltax, ftype) + uExact(k*deltat, (i+1)*deltax, ftype)))/(2*(deltax**2))
             aux3 = (1/2)*(f(k*deltat, i*deltax, ftype) + f((k+1)*deltat, i*deltax, ftype))
             truncError[i] = aux1 - aux2 - aux3
 
@@ -507,6 +523,10 @@ u0type = int(u0type)
 g1type = int(g1type)
 g2type = int(g2type)
 
+if (ftype not in [0,1,2,3]) or (u0type not in [0,1,3]) or (g1type not in [0,1]) or (g2type not in [0,1]):
+    print()
+    print("Invalid input.")
+
 # ---------------
 # Defining the grid
 # ---------------
@@ -541,25 +561,35 @@ elif method == 1:
 elif method == 2:
     result = crankNicolson(u, T, ftype, g1type, g2type)
 else:
-    print("Invalid number.")
+    print("Invalid input.")
 
 
 # Plot graphs
-tempGraphs(result)
-"""
+#tempGraphs(result)
+
 if (ftype != 2):
-    totalError = errorNorm(u, T, ftype)
-    truncationError = truncError(u, ftype)
-    print("Absolute error norm at t = T: ", totalError)
-    print("Truncation error: ", truncationError)
+    # Create learning curve
+    errorNorms = np.zeros((M,1))
+    truncErrorNorms = np.zeros((M,1))
 
-    myfile = open("dados.txt", 'a')
+    bar = Bar("Calculating error norms", max=M)
+    for k in range(M):
+        errorNorms[k] = errorNorm(k, u, T, ftype)
+        truncErrorNorms[k] = truncErrorNorm(k, u, T, ftype, method)
+        bar.next()
+    bar.finish()
 
-    errorString = "Error with N = " + str(N) + " and M = " + str(M) + ":            " + str(totalError) + "\n"
-    truncErrorString = "Truncation error with N = " + str(N) + " and M = " + str(M) + ": " + str(truncationError) + "\n\n"
+    resErrorNorm = errorNorms[M-1] # Error norm "result". We want the error norm at t = T
+    resTruncErrorNorm = np.amax(truncErrorNorms) # Truncation error norm "result". We want the maximum truncation error at all times
+    
+    print("Absolute error norm at t = T       : ", resErrorNorm)
+    print("Truncation error norm at all times : ", resTruncErrorNorm)
+
+    myfile = open("erros.txt", 'a')
+    errorString = "Norma do erro absoluto em t = T                 -  N = " + str(N) + " e M = " + str(M) + ": " + str(resErrorNorm) + "\n"
+    truncErrorString = "Norma do erro de truncamento em todos os tempos -  N = " + str(N) + " e M = " + str(M) + ": " + str(resTruncErrorNorm) + "\n\n"
 
     myfile.write(errorString)
     myfile.write(truncErrorString)
 
     myfile.close()
-"""
