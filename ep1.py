@@ -173,27 +173,18 @@ def LDLtDecomposition(diagonalA, subdiagonalA):
 
     return(Darr, Larr)
 
-def solveLinearSystem(A,b):
+def solveLinearSystem(diagA, subdiagA, b):
     """
     Solves the linear system Ax = b.
     Arguments:
-        - A : coefficient matrix
+        - diagA : diagonal of the coefficient matrix
+        - subdiagA : subdiagonal of the coefficient matrix
         - b : independent array
     Returns:
         - x : the solution to Ax = b.
     """
 
-    n = A.shape[0]    # Since A is a symmetric tridiagonal, we can rearrange it into 2 arrays:
-                      # The diagonal (diagA) and the subdiagonal (subdiagA)
-
-    diagA = np.zeros(n)   # Creating both arrays with the size n
-    subdiagA = np.zeros(n)  # subdiagA will actually be used starting at index 1
-
-    for i in range(n):    # Setting the values on the arrays
-      diagA[i] = A[i, i]
-
-    for i in range(n-1):
-      subdiagA[i+1] = A[i+1, i]
+    n = diagA.shape[0]
 
     diagD, subdiagL = LDLtDecomposition(diagA, subdiagA)    # Now we can decompose A into 2 arrays: D and L
                                                             # diagD will represent the diagonal on a diagonal matrix, D
@@ -282,12 +273,15 @@ def implicitEuler(u, T, ftype=0, g1type=0, g2type=0):
     deltax = 1/N
     lbd = deltat/deltax**2 # Lambda
 
-    # Construct coefficient matrix A
-    A = np.zeros((N-1,N-1))
+    # Construct coefficient matrix A - A is symmetric and tridiagonal, so it can be represented as 2 arrays of size N-1
+    
+    diagA = np.zeros(N-1) 
+    subdiagA = np.zeros(N-1)
+
     for i in range(N-1):
-        A[i, i] = 1 + 2*lbd
+        diagA[i] = 1 + 2*lbd
         if i != N - 2:
-            A[i, i+1] = A[i+1, i] = -lbd
+            subdiagA[i+1] = -lbd  # subdiagA will actually be used starting at index 1
 
     bar = Bar("Running implicitEuler()", max=M)
     for k in range(M):
@@ -299,7 +293,7 @@ def implicitEuler(u, T, ftype=0, g1type=0, g2type=0):
         b[N-2] = u[k, N-1] + deltat*f((k+1)*deltat, (N-1)*deltax, ftype) + lbd*g2((k+1)*deltat, g2type)
 
         # Solve Au = b, for time k+1
-        u[k+1, 1:N] = solveLinearSystem(A,b)
+        u[k+1, 1:N] = solveLinearSystem(diagA, subdiagA, b)
         
         bar.next()
     bar.finish()
@@ -325,12 +319,15 @@ def crankNicolson(u, T, ftype=0, g1type=0, g2type=0):
     deltax = 1/N
     lbd = deltat/deltax**2 # Lambda
 
-    # Construct coefficient matrix A
-    A = np.zeros((N-1,N-1))
+    # Construct coefficient matrix A - A is symmetric and tridiagonal, so it can be represented as 2 arrays of size N-1
+
+    diagA = np.zeros(N-1)
+    subdiagA = np.zeros(N-1)
+
     for i in range(N-1):
-        A[i, i] = 1 + lbd
+        diagA[i] = 1 + lbd 
         if i != N - 2:
-            A[i, i+1] = A[i+1, i] = -lbd/2
+            subdiagA[i+1] = -lbd/2 # subdiagA will actually be used starting at index 1
 
     bar = Bar("Running crankNicolson()", max=M)
     b = np.zeros((N-1))
@@ -340,7 +337,7 @@ def crankNicolson(u, T, ftype=0, g1type=0, g2type=0):
         for i in range (1,N-2):
             b[i] = u[k, i+1]*(1-lbd) + lbd/2*(u[k, i]+u[k, i+2]) + (deltat/2)*(f(k*deltat, (i+1)*deltax, ftype)+f((k+1)*deltat,(i+1)*deltax, ftype)) 
         b[N-2] = u[k, N-1]*(1-lbd) + lbd/2*(g2((k+1)*deltat, g2type) + g2(k*deltat, g2type)+ u[k, N-2]) + deltat/2*(f(k*deltat, (N-1)*deltax, ftype) + f((k+1)*deltat, (N-1)*deltax, ftype))
-        u[k+1, 1:N] = solveLinearSystem(A,b)
+        u[k+1, 1:N] = solveLinearSystem(diagA, subdiagA, b)
 
         bar.next()
     bar.finish()
@@ -363,7 +360,7 @@ def tempGraphs(u):
 
     fig = plt.figure()
     for i in range(0, M + 1, step):
-        y = u[i,...]  
+        y = u[i, :]  
         x = np.linspace(0,N,N+1)*deltax
         plt.plot(x, y, label='t = ' + str(i/M))
     
@@ -375,7 +372,7 @@ def tempGraphs(u):
     fig.savefig(evolucao)
     
     fig = plt.figure()
-    y = u[M,...]
+    y = u[M, :]
     x = np.linspace(0,N,N+1)*deltax
     plt.plot(x, y, label='Temperatura com t = T')
     plt.xlabel('Comprimento da barra')
@@ -565,7 +562,7 @@ else:
 
 
 # Plot graphs
-#tempGraphs(result)
+tempGraphs(result)
 
 if (ftype != 2):
     # Create learning curve
