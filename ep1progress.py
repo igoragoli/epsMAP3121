@@ -37,6 +37,7 @@ def f(t, x, type):
         func = 5*(np.exp(t - x))*(5*t**2*np.cos(5*t*x) - np.sin(5*t*x)*(x + 2*t))
     elif type == 2: # Item (c)
         r = 10000*(1 - 2*t**2)
+        x = round(x, 7)
         if np.abs(x - p) < h/2:
             func = r/h
         else:
