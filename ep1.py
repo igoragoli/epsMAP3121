@@ -10,20 +10,20 @@ import matplotlib.pyplot as plt
 from progress.bar import Bar
 
 # =================================
-# Functions and Iterative Methods
+# 1 Functions and Iterative Methods
 # =================================
 
 # ---------------
-# Functions
+# 1.1 Functions
 # ---------------
 
 def f(t, x, type):
     """
     Describes heat sources through time.
     Arguments:
-        - t : time
-        - x : position on the bar
-        - type : type of the function, specifies what f(x,t) should be
+        - t: time
+        - x: position on the bar
+        - type: type of the function, specifies what f(t,x) should be
           used at the function call
     """
     func = 0
@@ -49,7 +49,7 @@ def u0(x, type):
     """
     Describes the temperature at all positions x at t = 0.
     Arguments:
-        - x : position on the bar
+        - x: position on the bar
         - type: type of the function, specifies what u0(x) should be
           used at the function call
     """
@@ -67,8 +67,8 @@ def g1(t, type):
     """
     Describes the temperature at all times t at x = 0.
     Arguments:
-        - t : time
-        - type : type of the function, specifies what g1(t) should be
+        - t: time
+        - type: type of the function, specifies what g1(t) should be
           used at the function call
     """
     if type == 0 or type == 3 or type == 2: # Items (a) and (c)
@@ -81,8 +81,8 @@ def g2(t, type):
     """
     Describes the temperature at all times t at x = 1.
     Arguments:
-        - t : time
-        - type : type of the function, specifies what g2(t) should be
+        - t: time
+        - type: type of the function, specifies what g2(t) should be
           used at the function call
     """
     if type == 0 or type == 3 or type == 2: # Items (a) and (c)
@@ -93,7 +93,7 @@ def g2(t, type):
 
 def uExact(t, x, type):
     """
-    Describes the exact temperature at time t and distance x.
+    Describes the exact solution for the temperature at time t and position x.
     Arguments:
         - t : time
         - type : type of the function, specifies what uExact(t,x) should be
@@ -112,18 +112,18 @@ def LDLtDecomposition(diagonalA, subdiagonalA):
     """
     Decomposes the matrix A into 2 matrices: L and D.
     The product L*D*L^t equals A.
-    The matrix A is a symmetric tridiagonal matrix, so it can be described as 2 arrays: the diagonal and the subdiagonal.
-    The matrix D is a diagonal matrix, it can be described as 1 array.
-    The matrix L is a lower diagonal matrix with elements different from zero only in the diagonal and the subdiagonal
-    Since the diagonal of the matrix L is composed only from ones, L can be described as 1 array, which is the subdiagonal.
+    The matrix A is a symmetric tridiagonal matrix, so it can be described as 2 1-dimensional arrays: the diagonal and the subdiagonal.
+    The matrix D is a diagonal matrix, it can be described as an 1-dimensional array.
+    The matrix L is a lower diagonal matrix with elements different from zero only in the diagonal and the subdiagonal.
+    Since the diagonal of the matrix L is composed only of '1's, L can be described as an 1-dimensional array, which is the subdiagonal.
     Arguments:
         - diagonalA: array that represents the diagonal of the matrix to be decomposed
         - subdiagonalA: array that represents the subdiagonal of the matrix to be decomposed
     Returns:
-        - Larr: Array that represents the subdiagonal of the L matrix
-        - Darr: Array that represents the diagonal of the D matrix
+        - Larr: array that represents the subdiagonal of the L matrix
+        - Darr: array that represents the diagonal of the D matrix
     """
-    n = diagonalA.shape[0]   # First of all, we need to determine the size of the matrices, which is going to be the same as the matrix A
+    n = diagonalA.shape[0]   # First of all, we need to determine the size of the matrices, which is going to be the same as the size of matrix A
 
     A = np.eye(n)   # To use the algorithm, it's necessary to transform the arrays back to matrices.
 
@@ -137,7 +137,7 @@ def LDLtDecomposition(diagonalA, subdiagonalA):
     # Now we have the original A matrix, which we can use for the decomposition.
 
     L = np.eye(n)   # We inicially generate an identity matrix as the L matrix.
-                      # Since the L matrix is going to be a lower diagonal matrix, all the elements in its diagonal are 1.
+                    # Since the L matrix is going to be a lower diagonal matrix, all the elements in its diagonal are 1.
 
     D = np.zeros((n,n)) # D is inicially adopted as a zero matrix, because it's a diagonal matrix, so only the elements
                         # that are in the diagonal can be different from zero.
@@ -152,7 +152,7 @@ def LDLtDecomposition(diagonalA, subdiagonalA):
 
 
     for i in range(1, n): # For the remaining rows, from 1 to n-1, we can apply the algorithm.
-      for j in range(1, i+1):      # We need to apply it to every element, so it's necessary to apply to the columns from 1 to i (the diagonal).
+      for j in range(1, i+1): # We need to apply it to every element, so it's necessary to apply to the columns from 1 to i (the diagonal).
 
         D[j, j] = A[j, j] - sum((L[j, k] ** 2) * D[k, k] for k in range(0, j))
 
@@ -177,11 +177,11 @@ def solveLinearSystem(diagA, subdiagA, b):
     """
     Solves the linear system Ax = b.
     Arguments:
-        - diagA : diagonal of the coefficient matrix
-        - subdiagA : subdiagonal of the coefficient matrix
-        - b : independent array
+        - diagA: diagonal of the coefficient matrix
+        - subdiagA: subdiagonal of the coefficient matrix
+        - b: independent array
     Returns:
-        - x : the solution to Ax = b.
+        - x: the solution to Ax = b.
     """
 
     n = diagA.shape[0]
@@ -202,7 +202,7 @@ def solveLinearSystem(diagA, subdiagA, b):
 
     Lt = L.transpose()   # And we create the Lt matrix as well, which is the transposed L matrix
 
-    # To find a solution for LDLt * x = b, we need to solve the system it by parts
+    # To find a solution for LDLt * x = b, we need to solve the system by parts
     # First, we let y = Lt*x, and then we need to solve (L*D) * y = b
 
     LD = np.dot(L, D)
@@ -226,26 +226,25 @@ def solveLinearSystem(diagA, subdiagA, b):
     return x
 
 # ---------------
-# Iterative Methods
+# 1.2 Iterative Methods
 # ---------------
 
 def explicitFD(u, T, ftype=0):
     """
     Explicit finite differences method, described by equation (11) in the problem description.
-    It calculates the evolution of u(x,t) in time for all (xi,tk) interior
-    elements.
+    It calculates the evolution of u(t,x) in time for all (xi,tk) interior elements.
     Arguments:
-        - u : 2-dimensional array that stores the temperature at each
+        - u: 2-dimensional array that stores the temperature at each
           position xi and time tk
-        - T : time interval
-        - ftype : f(x,t) function type
+        - T: time interval
+        - ftype: f(t, x) function type
     """
     M = u.shape[0] - 1
     N = u.shape[1] - 1
     deltat = T/M
     deltax = 1/N
 
-    bar = Bar("Running explicitFD()", max=M)
+    bar = Bar("Running explicitFD()", max=M) # This sets up a progress bar
     for k in range(M):
         for i in range(1, N):
             u[k+1, i] = u[k, i] + deltat*((u[k, i-1] - 2*u[k, i] + u[k, i+1])/deltax**2 + f(k*deltat, i*deltax, ftype))
@@ -257,15 +256,15 @@ def explicitFD(u, T, ftype=0):
 def implicitEuler(u, T, ftype=0, g1type=0, g2type=0):
     """
     The implicit Euler method is described by equation (29) in the problem description.
-    It calculates the evolution of u(x,t), but the solution in a particular point of the
+    It calculates the evolution of u(t,x), but the solution in a particular point of the
     grid depends on the solution on all other points. Thus, the linear system (29) must be solved.
     Arguments:
-        - u : 2-dimensional array that stores the temperature at each
+        - u: 2-dimensional array that stores the temperature at each
           position xi and time tk
-        - T : time interval
-        - ftype : f(x,t) function type
-        - g1type : g1(t) function type
-        - g2type : g2(t) function type
+        - T: time interval
+        - ftype: f(t, x) function type
+        - g1type: g1(t) function type
+        - g2type: g2(t) function type
     """
     M = u.shape[0] - 1
     N = u.shape[1] - 1
@@ -273,8 +272,7 @@ def implicitEuler(u, T, ftype=0, g1type=0, g2type=0):
     deltax = 1/N
     lbd = deltat/deltax**2 # Lambda
 
-    # Construct coefficient matrix A - A is symmetric and tridiagonal, so it can be represented as 2 arrays of size N-1
-    
+    # Construct coefficient matrix A. A is symmetric and tridiagonal, so it can be represented as 2 arrays of size N-1
     diagA = np.zeros(N-1) 
     subdiagA = np.zeros(N-1)
 
@@ -283,7 +281,7 @@ def implicitEuler(u, T, ftype=0, g1type=0, g2type=0):
         if i != N - 2:
             subdiagA[i+1] = -lbd  # subdiagA will actually be used starting at index 1
 
-    bar = Bar("Running implicitEuler()", max=M)
+    bar = Bar("Running implicitEuler()", max=M) # This sets up a progress bar
     for k in range(M):
         # Construct independent array b
         b = np.zeros((N-1,1))
@@ -302,16 +300,16 @@ def implicitEuler(u, T, ftype=0, g1type=0, g2type=0):
 
 def crankNicolson(u, T, ftype=0, g1type=0, g2type=0):
     """
-    The crank Nicholson method is described by equation (35) in the problem description.
-    In a similar manner to the implicit Euler method, it calculates the evolution of u(x,t).
+    The crank Nicolson method is described by equation (35) in the problem description.
+    In a similar manner to the implicit Euler method, it calculates the evolution of u(t,x).
     However, this method has a second order convergence in both deltat and deltax.
     Arguments:
-        - u : 2-dimensional array that stores the temperature at each
+        - u: 2-dimensional array that stores the temperature at each
           position xi and time tk
-        - T : time interval
-        - ftype : f(x,t) function type
-        - g1type : g1(t) function type
-        - g2type : g2(t) function type
+        - T: time interval
+        - ftype: f(t,x) function type
+        - g1type: g1(t) function type
+        - g2type: g2(t) function type
     """
     M = u.shape[0] - 1
     N = u.shape[1] - 1
@@ -319,8 +317,7 @@ def crankNicolson(u, T, ftype=0, g1type=0, g2type=0):
     deltax = 1/N
     lbd = deltat/deltax**2 # Lambda
 
-    # Construct coefficient matrix A - A is symmetric and tridiagonal, so it can be represented as 2 arrays of size N-1
-
+    # Construct coefficient matrix A. A is symmetric and tridiagonal, so it can be represented as 2 arrays of size N-1
     diagA = np.zeros(N-1)
     subdiagA = np.zeros(N-1)
 
@@ -329,9 +326,8 @@ def crankNicolson(u, T, ftype=0, g1type=0, g2type=0):
         if i != N - 2:
             subdiagA[i+1] = -lbd/2 # subdiagA will actually be used starting at index 1
 
-    bar = Bar("Running crankNicolson()", max=M)
+    bar = Bar("Running crankNicolson()", max=M) # This sets up a progress bar
     b = np.zeros((N-1))
-    
     for k in range (0, M):
         b[0] = u[k, 1]*(1-lbd) + lbd/2*(g1(k*deltat, g1type) + g1((k+1)*deltat, g1type) + u[k, 2]) + (deltat/2)*(f((k+1)*deltat, 1*deltax, ftype) + f(k*deltat, 1*deltax, ftype))
         for i in range (1,N-2):
@@ -349,7 +345,7 @@ def tempGraphs(u):
     Plots graphs related to the temperature: the evolution of the temperature in the bar through time, 
     and the temperature at t = T.
     Arguments:
-        - u : 2-dimensional array that stores the temperature at each
+        - u: 2-dimensional array that stores the temperature at each
           position xi and time tk
     """
     M = u.shape[0] - 1
@@ -384,34 +380,15 @@ def tempGraphs(u):
 
     plt.show()
 
-def errorGraph(e):
-    """
-    Plots an error graph according to the error vector e
-    Arguments:
-        - e : error array, of size M
-    """
-    M = e.shape[0]
-    k = np.arange(M)
-
-    fig = plt.figure()
-    plt.plot(k, e, label='Erro ')
-    plt.legend()
-    plt.suptitle('Evolução do erro com a iteração k')
-    plt.xlabel('Número da iteração')
-    plt.ylabel('Erro')
-    #evolucao = "evoluN=" + str(N) + "M=" + str(M) + ".png"
-    #fig.savefig(evolucao)
-    plt.show()
-
 def errorNorm(k, u, T, ftype):
     """
     Calculates the norm of the absolute error at the instant tk = k*deltaT.
     Arguments:
         - k
-        - u : 2-dimensional array that stores the temperature at each
+        - u: 2-dimensional array that stores the temperature at each
           position xi and time tk
-        - T : time period
-        - utype : function type, it will determine what is the exact function.
+        - T: time period
+        - utype: function type, it will determine what is the exact function.
     """
     M = u.shape[0] - 1
     N = u.shape[1] - 1
@@ -437,7 +414,7 @@ def truncErrorNorm(k, u, T, ftype, met):
         - u : 2-dimensional array that stores the temperature at each
           position xi and time tk
         - T : time period
-        - ftype : f(x,t) and uExact(t,x) type.
+        - ftype : f(t,x) and uExact(t,x) type.
         - met : method used
     """
 
@@ -467,25 +444,22 @@ def truncErrorNorm(k, u, T, ftype, met):
     return truncErrorNorm    
 
 # =================================
-# Simulations
+# 2 Simulations
 # =================================
-
-# ---------------
-# Inputs
-# ---------------
 
 # To model the bar temperature problem, (x,t) will be understood as a (N,M) grid
 # in which xi = i*deltax, i = 0, ..., N and tk = k*deltat, k = 0, ..., M, where
 # deltax = 1/N and deltat = T/M.
 
-print(" ______________________________ ")
-print("|                              |")
-print("|         MAP3121 - EP1        |")
-print("|          Simulations         |")
-print("|______________________________|")
+print(" ________________________________________")
+print("|                                        |")
+print("|                Welcome to              |")
+print("|              MAP3121 - EP1             |")
+print("|               Simulations!             |")
+print("|________________________________________|")
 print()
 
-input_list = input("Please input T, N and M respectively, separated by commas: ")
+input_list = input("Please input T, N and M respectively, separated by commas (e.g. 1,10,200): ")
 T, N, M = input_list.split(',')
 
 T = int(T)
@@ -497,22 +471,23 @@ deltat = T/M
 lbd = deltat/deltax**2 # Lambda
 
 # Select functions
+# a1 is the first function described at item (a). a2 is the second function described at item (a)
 print()
-print("Types :           '0'               |                        '1'                        ")
-print("------------------------------------|---------------------------------------------------")
-print("f(t,x): 10x^2(x-1) - 60xt + 20t (a1)| 5e^(t - x)*(5t^2*cos(5tx) - sin(5tx)*(x + 2t)) (b)")
-print("u0(x) :            0         (a1, c)|                      e^(-x)                    (b)")
-print("g1(t) :            0     (a1, a2, c)|                      e^(t)                     (b)")
-print("g2(t) :            0     (a1, a2, c)|                      e^(t-1)                   (b)")
+print("Types :           '0'               |                          '1'                             ")
+print("------------------------------------|----------------------------------------------------------")
+print("f(t,x): 10x^2(x-1) - 60xt + 20t (a1)|     5e^(t - x)*(5t^2*cos(5tx) - sin(5tx)*(x + 2t))    (b)")
+print("u0(x) :            0         (a1, c)|                         e^(-x)                        (b)")
+print("g1(t) :            0     (a1, a2, c)|                         e^(t)                         (b)")
+print("g2(t) :            0     (a1, a2, c)|                         e^(t-1)                       (b)")
 print()
-print("Types :          '2'          |                          '3'                             ")
-print("------------------------------|----------------------------------------------------------")
-print("f(t,x): source at p = 0.25 (c)| 10cos(10t)x^2(1-x)^2-(1 + sin(10t))(12x^2 - 12x + 2) (a2)")
-print("u0(x) :          N.A.         |                      x^2(1-x)^2                      (a2)")
-print("g1(t) :          N.A.         |                         N.A.                             ")
-print("g2(t) :          N.A.         |                         N.A.                             ")
+print("Types :             '2'             |                          '3'                             ")
+print("------------------------------------|----------------------------------------------------------")
+print("f(t,x):   source at p = 0.25 (c)    | 10cos(10t)x^2(1-x)^2-(1 + sin(10t))(12x^2 - 12x + 2) (a2)")
+print("u0(x) :             N.A.            |                      x^2(1-x)^2                      (a2)")
+print("g1(t) :             N.A.            |                         N.A.                             ")
+print("g2(t) :             N.A.            |                         N.A.                             ")
 print()
-input_list = input("Please input f, u0, g1 and g2 types respectively, separated by commas: ")
+input_list = input("Please input f, u0, g1 and g2 types respectively,\nseparated by commas (e.g. 2,0,0,0 for item (c)):")
 ftype, u0type, g1type, g2type = input_list.split(',')
 
 ftype = int(ftype)
@@ -524,16 +499,12 @@ if (ftype not in [0,1,2,3]) or (u0type not in [0,1,3]) or (g1type not in [0,1]) 
     print()
     print("Invalid input.")
 
-# ---------------
 # Defining the grid
-# ---------------
-
 u = np.zeros((M+1, N+1))
 
 # Applying initial conditions functions
 for i in range(N+1):
     u[0,i] = u0(i*deltax, u0type)
-    
 for k in range(M+1):
     u[k,0] = g1(k*deltat, g1type)
     u[k,N] = g2(k*deltat, g2type)
@@ -562,13 +533,13 @@ else:
 
 
 # Plot graphs
+print("Plotting graphs")
 tempGraphs(result)
 
+# Calculate error norms
 if (ftype != 2):
-    # Create learning curve
     errorNorms = np.zeros((M+1,1))
     truncErrorNorms = np.zeros((M+1,1))
-
     bar = Bar("Calculating error norms", max=M)
     for k in range(M+1):
         errorNorms[k] = errorNorm(k, u, T, ftype)
@@ -582,7 +553,7 @@ if (ftype != 2):
     print("Absolute error norm at t = T       : ", resErrorNorm)
     print("Truncation error norm at all times : ", resTruncErrorNorm)
 
-    myfile = open("erros.txt", 'a')
+    myfile = open("normasDosErros.txt", 'a')
     errorString = "Norma do erro absoluto em t = T                 -  N = " + str(N) + " e M = " + str(M) + ": " + str(resErrorNorm) + "\n"
     truncErrorString = "Norma do erro de truncamento em todos os tempos -  N = " + str(N) + " e M = " + str(M) + ": " + str(resTruncErrorNorm) + "\n\n"
 
