@@ -1,6 +1,7 @@
 ####################################################
 # EP1 de MAP3121 - Metodos Numericos e Aplicacoes  #
-#                                                  #
+# Docente: André Salles de Carvalho                #
+# Turma: 3                                          #
 # Igor Augusto Gomes de Oliveira - 10773270        #
 # Igor Nunes Ferro               - 10774138        #
 ####################################################
