@@ -1,14 +1,13 @@
 ####################################################
 # EP1 de MAP3121 - Metodos Numericos e Aplicacoes  #
 # Docente: André Salles de Carvalho                #
-# Turma: 3                                          #
+# Turma: 3                                         #
 # Igor Augusto Gomes de Oliveira - 10773270        #
 # Igor Nunes Ferro               - 10774138        #
 ####################################################
 
 import numpy as np
 import matplotlib.pyplot as plt
-from progress.bar import Bar
 
 # =================================
 # 1 Functions and Iterative Methods
@@ -245,12 +244,10 @@ def explicitFD(u, T, ftype=0):
     deltat = T/M
     deltax = 1/N
 
-    bar = Bar("Running explicitFD()", max=M) # This sets up a progress bar
+    print("Running explicitFD()")
     for k in range(M):
         for i in range(1, N):
             u[k+1, i] = u[k, i] + deltat*((u[k, i-1] - 2*u[k, i] + u[k, i+1])/deltax**2 + f(k*deltat, i*deltax, ftype))
-        bar.next()
-    bar.finish()
 
     return u
 
@@ -282,7 +279,7 @@ def implicitEuler(u, T, ftype=0, g1type=0, g2type=0):
         if i != N - 2:
             subdiagA[i+1] = -lbd  # subdiagA will actually be used starting at index 1
 
-    bar = Bar("Running implicitEuler()", max=M) # This sets up a progress bar
+    print("Running implicitEuler()")
     for k in range(M):
         # Construct independent array b
         b = np.zeros((N-1,1))
@@ -293,9 +290,6 @@ def implicitEuler(u, T, ftype=0, g1type=0, g2type=0):
 
         # Solve Au = b, for time k+1
         u[k+1, 1:N] = solveLinearSystem(diagA, subdiagA, b)
-        
-        bar.next()
-    bar.finish()
 
     return u
 
@@ -327,7 +321,7 @@ def crankNicolson(u, T, ftype=0, g1type=0, g2type=0):
         if i != N - 2:
             subdiagA[i+1] = -lbd/2 # subdiagA will actually be used starting at index 1
 
-    bar = Bar("Running crankNicolson()", max=M) # This sets up a progress bar
+    print("Running crankNicolson()")
     b = np.zeros((N-1))
     for k in range (0, M):
         b[0] = u[k, 1]*(1-lbd) + lbd/2*(g1(k*deltat, g1type) + g1((k+1)*deltat, g1type) + u[k, 2]) + (deltat/2)*(f((k+1)*deltat, 1*deltax, ftype) + f(k*deltat, 1*deltax, ftype))
@@ -335,9 +329,6 @@ def crankNicolson(u, T, ftype=0, g1type=0, g2type=0):
             b[i] = u[k, i+1]*(1-lbd) + lbd/2*(u[k, i]+u[k, i+2]) + (deltat/2)*(f(k*deltat, (i+1)*deltax, ftype)+f((k+1)*deltat,(i+1)*deltax, ftype)) 
         b[N-2] = u[k, N-1]*(1-lbd) + lbd/2*(g2((k+1)*deltat, g2type) + g2(k*deltat, g2type)+ u[k, N-2]) + deltat/2*(f(k*deltat, (N-1)*deltax, ftype) + f((k+1)*deltat, (N-1)*deltax, ftype))
         u[k+1, 1:N] = solveLinearSystem(diagA, subdiagA, b)
-
-        bar.next()
-    bar.finish()
 
     return u
 
@@ -541,12 +532,10 @@ tempGraphs(result)
 if (ftype != 2):
     errorNorms = np.zeros((M+1,1))
     truncErrorNorms = np.zeros((M+1,1))
-    bar = Bar("Calculating error norms", max=M)
+    print("Calculating error norms")
     for k in range(M+1):
         errorNorms[k] = errorNorm(k, u, T, ftype)
         truncErrorNorms[k] = truncErrorNorm(k, u, T, ftype, method)
-        bar.next()
-    bar.finish()
 
     resErrorNorm = errorNorms[M, 0] # Error norm "result". We want the error norm at t = T
     resTruncErrorNorm = np.amax(truncErrorNorms) # Truncation error norm "result". We want the maximum truncation error at all times
@@ -562,3 +551,5 @@ if (ftype != 2):
     myfile.write(truncErrorString)
 
     myfile.close()
+
+print()
