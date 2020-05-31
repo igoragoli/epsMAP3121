@@ -25,7 +25,7 @@ def f(t, x, p, k):
         - t: time
         - x: position on the bar
         - p: array that contains the positions pk in which 
-          the force f_k(t,x) = r(t)g_h^k(x) will be applied 
+          the force f_k(t,x) = r(t)ghk(x) will be applied 
         - k: indicates which element in p will be selected
     """
     pk = p[k] 
@@ -55,15 +55,12 @@ def LDLtDecomposition(A):
     """
     n = A.shape[0]
     L = np.eye(n)
-    D = np.zeros((n,n))
-    v = np.zeros((n,1))
+    D = np.zeros((n, 1))
     for i in range(0, n):
-        for j in range(0, i-1):
-            v[j] = L[i, j]*D[j, j]
-        D[i, i] = A[i, i] - sum(L[i, j]*v[j] for j in range(0, i-1))
+        D[i] = A[i, i] - np.dot(L[i, 0:i]**2, D[0:i])
         for j in range(i+1, n):
-            L[j, i] = (A[j, i] - sum(L[j, k]*v[k] for k in range(0, i-1)))/D[i, i]
-
+            L[j, i] = (A[j, i] - np.dot(L[j, 0:i]*L[i, 0:i], D[0:i])) / D[i]
+    D = np.eye(n) * D
     return (L, D)
 
 # CHANGE NEEDED
@@ -173,11 +170,11 @@ def crankNicolson(u, T, ftype=0, g1type=0, g2type=0):
 # To model the bar temperature problem, (x,t) will be understood as a (N,M) grid
 # in which xi = i*deltax, i = 0, ..., N and tk = k*deltat, k = 0, ..., M, where
 # deltax = 1/N and deltat = T/M.
-"""
+
 print(" ________________________________________")
 print("|                                        |")
 print("|                Welcome to              |")
-print("|              MAP3121 - EP1             |")
+print("|              MAP3121 - EP2             |")
 print("|               Simulations!             |")
 print("|________________________________________|")
 print()
@@ -193,6 +190,7 @@ deltax = 1/N
 deltat = T/M
 lbd = deltat/deltax**2 # Lambda
 
+"""
 # Select functions
 # a1 is the first function described at item (a). a2 is the second function described at item (a)
 print()
