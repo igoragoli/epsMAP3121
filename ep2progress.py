@@ -42,7 +42,68 @@ def f(t, x, p, k):
 
     return f
 
-# CHANGE NEEDED
+def triDiagLDLtDecomposition(diagonalA, subdiagonalA):
+    """
+    Decomposes the tridiagonal matrix A into 2 matrices: L and D.
+    The product L*D*L^t equals A. 
+    Arguments:
+        - diagonalA: array that represents the diagonal of the matrix to be decomposed
+        - subdiagonalA: array that represents the subdiagonal of the matrix to be decomposed
+    Returns:
+        - Larr: array that represents the subdiagonal of the L matrix
+        - Darr: array that represents the diagonal of the D matrix
+    """
+    n = diagonalA.shape[0]   # First of all, we need to determine the size of the matrices, which is going to be the same as the size of matrix A
+
+    A = np.eye(n)   # To use the algorithm, it's necessary to transform the arrays back to matrices.
+
+    for i in range(n):
+      A[i, i] = diagonalA[i]
+
+    for i in range(n-1):
+      A[i+1, i] = subdiagonalA[i+1]
+      A[i, i+1] = subdiagonalA[i+1]
+
+    # Now we have the original A matrix, which we can use for the decomposition.
+
+    L = np.eye(n)   # We inicially generate an identity matrix as the L matrix.
+                    # Since the L matrix is going to be a lower diagonal matrix, all the elements in its diagonal are 1.
+
+    D = np.zeros((n,n)) # D is inicially adopted as a zero matrix, because it's a diagonal matrix, so only the elements
+                        # that are in the diagonal can be different from zero.
+
+    D[0, 0] = A[0, 0] # The first element of the diagonal from the D matrix is identical to the first diagonal element from A.
+
+    # We can apply the Cholesky Decomposition to decompose a matrix "A" in two matrices "D" and "L", where A = L*D*Lt
+    # The algorithm originally applies to a L*Lt decomposition, but there is an alternative form that generates a "D" matrix as well.
+
+    for i in range(0, n): # At column 0, the elements will be "A" from the same position divided by "D[0 ,0]", which was previously determined.
+      L[i, 0] = float(A[i, 0]) / float(D[0, 0])
+
+
+    for i in range(1, n): # For the remaining rows, from 1 to n-1, we can apply the algorithm.
+      for j in range(1, i+1): # We need to apply it to every element, so it's necessary to apply to the columns from 1 to i (the diagonal).
+
+        D[j, j] = A[j, j] - sum((L[j, k] ** 2) * D[k, k] for k in range(0, j))
+
+        if i > j:
+          L[i, j] = (1/D[j, j]) * (A[i, j] - sum(L[i, k]*L[j, k]*D[k, k] for k in range(0, j)))
+                                  # Since there are no elements different from one in the diagonal at matrix L, the elements
+                                  # of L will be only calculated with i > j.
+
+    Darr = np.zeros(n)    # Now we can generate the arrays that are going to describe the D and L matrices.
+    Larr = np.zeros(n)    # The size of Larr actually needs to be n-1, but we created it with size n because it's better for the loops.
+                          # So the element at index 0 at Larrn is going to be zero, and won't be used in the future.
+
+    for i in range(n):
+      Darr[i] = D[i, i]
+
+    for i in range(n-1):
+      Larr[i+1] = L[i+1, i]
+
+    return(Darr, Larr)
+
+# DONE - Working.
 def LDLtDecomposition(A):
     """
     Decomposes the matrix A into 2 matrices: L and D.
@@ -61,12 +122,11 @@ def LDLtDecomposition(A):
         for j in range(i+1, n):
             L[j, i] = (A[j, i] - np.dot(L[j, 0:i]*L[i, 0:i], D[0:i])) / D[i]
     D = np.eye(n) * D
-    return (L, D)
+    return (D, L)
 
-# CHANGE NEEDED
-def solveLinearSystem(diagA, subdiagA, b):
+def triDiagSolveLinearSystem(diagA, subdiagA, b):
     """
-    Solves the linear system Ax = b.
+    Solves the linear system Ax = b, where A is a tridiagonal matrix.
     Arguments:
         - diagA: diagonal of the coefficient matrix
         - subdiagA: subdiagonal of the coefficient matrix
@@ -101,6 +161,40 @@ def solveLinearSystem(diagA, subdiagA, b):
     y = np.zeros(n)
 
     for i in range(0, n):
+        sumLD = 0
+        for j in range(i):
+            sumLD = sumLD + LD[i, j]*y[j]
+        y[i] = (1/LD[i, i])*(b[i] - sumLD)
+
+    # Now, we solve Lt*x = y
+    x = np.zeros(n)
+    for i in range(n-1, -1, -1):
+        sumLt = 0
+        for j in range(n-1, i, -1):
+            sumLt = sumLt + Lt[i, j]*x[j]
+        x[i] = (1/Lt[i, i])*(y[i] - sumLt)
+
+    return x
+
+# DONE - Working
+def solveLinearSystem(A, b):
+    """
+    Solves the linear system Ax = b.
+    Arguments:
+        - A: coefficient matrix
+        - b: independent array
+    Returns:
+        - x: the solution to Ax = b.
+    """
+    n = A.shape[0]
+    D, L = LDLtDecomposition(A) 
+    Lt = L.transpose()   
+    
+    # To find a solution for LDLt * x = b, we need to solve the system by parts
+    # First, we let y = Lt*x, and then we need to solve (L*D) * y = b
+    LD = np.dot(L, D)
+    y = np.zeros(n)
+    for i in range(n):
         sumLD = 0
         for j in range(i):
             sumLD = sumLD + LD[i, j]*y[j]
@@ -287,6 +381,7 @@ print()
 """
 A = np.array([[4, -1, 1], [-1, 4.25, 2.75], [1, 2.75, 3.5]])
 print(A)
-L, D = LDLtDecomposition(A)
-print(L)
-print(D)
+b = np.array([1, 2, 3])
+print(b)
+x = solveLinearSystem(A, b)
+print(x)
