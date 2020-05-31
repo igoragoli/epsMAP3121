@@ -18,21 +18,18 @@ from progress.bar import Bar
 # 1.1 Functions
 # ---------------
 
-def f(t, x, p, k):
+def f(t, x, pk):
     """
     Describes heat sources through time applied at discrete points.
+    
     Arguments:
         - t: time
         - x: position on the bar
-        - p: array that contains the positions pk in which 
-          the force f_k(t,x) = r(t)ghk(x) will be applied 
-        - k: indicates which element in p will be selected
+        - pk: position pk in which 
+          the force f_k(t,x) = r(t)ghk(x) will be applied
     """
-    pk = p[k] 
     h = deltax
-    
     r = 10*(1 + np.cos(5*t))
-
     x = round(x, 7) # Why ?
 
     if np.abs(x - pk) < h/2:
@@ -103,7 +100,7 @@ def triDiagLDLtDecomposition(diagonalA, subdiagonalA):
 
     return(Darr, Larr)
 
-# DONE - Working.
+# DONE - Working correctly.
 def LDLtDecomposition(A):
     """
     Decomposes the matrix A into 2 matrices: L and D.
@@ -137,7 +134,7 @@ def triDiagSolveLinearSystem(diagA, subdiagA, b):
 
     n = diagA.shape[0]
 
-    diagD, subdiagL = LDLtDecomposition(diagA, subdiagA)    # Now we can decompose A into 2 arrays: D and L
+    diagD, subdiagL = triDiagLDLtDecomposition(diagA, subdiagA)    # Now we can decompose A into 2 arrays: D and L
                                                             # diagD will represent the diagonal on a diagonal matrix, D
                                                             # subdiagL will represent the subdiagonal on a bidiagonal matrix L
                                                             # A can be described by the multiplication L * D * Lt
@@ -176,7 +173,7 @@ def triDiagSolveLinearSystem(diagA, subdiagA, b):
 
     return x
 
-# DONE - Working
+# DONE - Working correctly.
 def solveLinearSystem(A, b):
     """
     Solves the linear system Ax = b.
@@ -210,23 +207,51 @@ def solveLinearSystem(A, b):
 
     return x
 
+def buildNormalSystem(f, g):
+    """
+    Builds the normal system for the Least Squares Method. 
+    Given a vector f, we would like to approximate it with vectors g1, g2, ..., gn.
+    The solution to this problem is given by the normal system.
+    Arguments:
+    - f: desired vector
+    - g: set of vectors used to approximate f
+    Returns:
+    - A: coefficient matrix of the normal system
+    - b: independent vector of the normal system
+    """
+
+    n = g.shape[0]
+    A = np.zeros(n,n)
+    b = np.zeros(n,1)
+
+    for i in range(n):
+        for j in range(i, n):
+            A[i, j] = np.dot(g[i], g[j])
+            if i != j:
+                A[j, i] = A[i, j]
+        b[i] = np.dot(g[i], f)
+
+    return A, b
+
 # ---------------
 # 1.2 Iterative Methods
 # ---------------
 
 # CHANGE NEEDED
-def crankNicolson(u, T, ftype=0, g1type=0, g2type=0):
+def crankNicolson(u, T, pk):
     """
     The crank Nicolson method is described by equation (35) in the problem description.
     In a similar manner to the implicit Euler method, it calculates the evolution of u(t,x).
     However, this method has a second order convergence in both deltat and deltax.
+    
+    IMPORTANT: To improve readability, the function was updated to support only the initial 
+    conditions specified in the problem description, that is, the initial conditions must be zero!
+
     Arguments:
         - u: 2-dimensional array that stores the temperature at each
           position xi and time tk
         - T: time interval
-        - ftype: f(t,x) function type
-        - g1type: g1(t) function type
-        - g2type: g2(t) function type
+        - pk: point where the punctual force will be applied.
     """
     M = u.shape[0] - 1
     N = u.shape[1] - 1
@@ -246,10 +271,10 @@ def crankNicolson(u, T, ftype=0, g1type=0, g2type=0):
     bar = Bar("Running crankNicolson()", max=M) # This sets up a progress bar
     b = np.zeros((N-1))
     for k in range (0, M):
-        b[0] = u[k, 1]*(1-lbd) + lbd/2*(g1(k*deltat, g1type) + g1((k+1)*deltat, g1type) + u[k, 2]) + (deltat/2)*(f((k+1)*deltat, 1*deltax, ftype) + f(k*deltat, 1*deltax, ftype))
+        b[0] = u[k, 1]*(1-lbd) + lbd/2*u[k, 2] + (deltat/2)*(f((k+1)*deltat, 1*deltax, pk) + f(k*deltat, 1*deltax, pk))
         for i in range (1,N-2):
-            b[i] = u[k, i+1]*(1-lbd) + lbd/2*(u[k, i]+u[k, i+2]) + (deltat/2)*(f(k*deltat, (i+1)*deltax, ftype)+f((k+1)*deltat,(i+1)*deltax, ftype)) 
-        b[N-2] = u[k, N-1]*(1-lbd) + lbd/2*(g2((k+1)*deltat, g2type) + g2(k*deltat, g2type)+ u[k, N-2]) + deltat/2*(f(k*deltat, (N-1)*deltax, ftype) + f((k+1)*deltat, (N-1)*deltax, ftype))
+            b[i] = u[k, i+1]*(1-lbd) + lbd/2*(u[k, i]+u[k, i+2]) + (deltat/2)*(f(k*deltat, (i+1)*deltax, pk)+f((k+1)*deltat,(i+1)*deltax, pk)) 
+        b[N-2] = u[k, N-1]*(1-lbd) + lbd/2*(u[k, N-2]) + deltat/2*(f(k*deltat, (N-1)*deltax, pk) + f((k+1)*deltat, (N-1)*deltax, pk))
         u[k+1, 1:N] = triDiagSolveLinearSystem(diagA, subdiagA, b)
 
         bar.next()
@@ -273,16 +298,43 @@ print("|               Simulations!             |")
 print("|________________________________________|")
 print()
 
-input_list = input("Please input T, N and M respectively, separated by commas (e.g. 1,10,200): ")
-T, N, M = input_list.split(',')
+input_list = input("Please input T and N respectively, separated by commas (e.g. 1,10): ")
+T, N = input_list.split(',')
 
 T = int(T)
 N = int(N)
-M = int (M)
+M = N
 
 deltax = 1/N
 deltat = T/M
 lbd = deltat/deltax**2 # Lambda
+
+
+print()
+print("Options: ")
+print("    1. Estimate the solution uT(x) with crank-Nicolson method given a") 
+print("    set of positions p where punctual forces will be applied.")
+print("    2. Use the existing solution in 'teste.txt'.")
+option = input("Please input the number corresponding to your choice: ")
+
+if option == '1':
+    print()
+    input_list = input("Please input the set of positions p, separated by commas (e.g. 0.35, 0.25, 0.75): ")
+    p = input_list.split(',')
+    n = p.shape[0]
+    input_list = input("Please input the set of coefficients associated with each position,\nseparated by commas (e.g. 1, 2, 7): ")
+    a = input_list.split(',')
+    solutions = np.zeros((n,1)) # We will store the solutions for each point in p here
+    for k in range(n):
+        print("Calculating the solution for position p" + str(k+1) + ".")
+        u = np.zeros((M+1, N+1))
+        u = crankNicolson(u, T, p[k])
+        solutions[k] = u[M,:] # The solution at t = T
+    uT = sum(a[k]*solutions[k] for k in range(n)) # Linear combination of the solutions
+
+
+
+
 
 """
 # Select functions
