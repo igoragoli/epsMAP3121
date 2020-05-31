@@ -250,7 +250,7 @@ def crankNicolson(u, T, ftype=0, g1type=0, g2type=0):
         for i in range (1,N-2):
             b[i] = u[k, i+1]*(1-lbd) + lbd/2*(u[k, i]+u[k, i+2]) + (deltat/2)*(f(k*deltat, (i+1)*deltax, ftype)+f((k+1)*deltat,(i+1)*deltax, ftype)) 
         b[N-2] = u[k, N-1]*(1-lbd) + lbd/2*(g2((k+1)*deltat, g2type) + g2(k*deltat, g2type)+ u[k, N-2]) + deltat/2*(f(k*deltat, (N-1)*deltax, ftype) + f((k+1)*deltat, (N-1)*deltax, ftype))
-        u[k+1, 1:N] = solveLinearSystem(diagA, subdiagA, b)
+        u[k+1, 1:N] = triDiagSolveLinearSystem(diagA, subdiagA, b)
 
         bar.next()
     bar.finish()
