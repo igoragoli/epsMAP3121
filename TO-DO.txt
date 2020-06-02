@@ -1,0 +1,9 @@
+1. Change f() to return the force f = r(t)ghk(x) given a point pk. - OK
+2. Update LDLtDecomposition() to support sparce matrices. - OK
+3. Update solveLinearSystem() to support sparce matrices. - OK
+4. Code buildNormalSystem()
+5. Code readTestFile() to read teste.txt
+
+Now, the old LDLtDecomposition() used in Crank-Nicolson will be called 
+"triDiagLDLtDecomposition". Also, solveLinearSystem will be renamed to 
+"triDiagSolveLinearSystem".
