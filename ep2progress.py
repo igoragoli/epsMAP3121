@@ -236,6 +236,39 @@ def buildNormalSystem(f, g):
 
     return A, b
 
+def readTestFile(fileName):
+    """
+    Reads a .txt test file with the following format:
+        <p1> <p2> <p3> ... <pnf>
+        <uT[0]>
+        <uT[1]>
+        <uT[2]>
+        ...
+        <uT[N]>
+    where pk represents the position where the force r(t)ghk(x) will be applied,
+    and uT[k] represents a solution for the bar temperature problem at time t = T. 
+    Arguments:
+    - fileName: string that contains the name of the test file
+    Returns:
+    - p: array containing all positions pk.
+    - uT: array containing the solution at t = T for all positions xk.
+    """
+    
+    testFile = open(fileName, "r")
+    uT = np.array([])
+    firstLine = 1
+    for line in testFile:
+        if firstLine:
+            p = line.split("       ") # What separates each pk in the test file given 
+                                      # in the problem description
+            p = np.array([float(pk) for pk in p])
+            firstLine = 0
+        else:
+            uT = np.append(uT, float(line))
+    testFile.close()
+
+    return p, uT
+
 # ---------------
 # 1.2 Iterative Methods
 # ---------------
@@ -312,7 +345,6 @@ deltax = 1/N
 deltat = T/M
 lbd = deltat/deltax**2 # Lambda
 
-
 print()
 print("Options: ")
 print("    1. Estimate the solution uT(x) with crank-Nicolson method given a") 
@@ -322,12 +354,12 @@ option = input("Please input the number corresponding to your choice: ")
 
 if option == '1':
     print()
-    input_list = input("Please input the set of positions p, separated by commas (e.g. 0.35, 0.25, 0.75): ")
+    input_list = input("Please input the set of positions p, separated by commas (e.g. 0.35,0.25,0.75): ")
     p = input_list.split(',')
     p = np.array([float(pos) for pos in p])
     n = p.shape[0]
     
-    input_list = input("Please input the set of coefficients associated with each position,\nseparated by commas (e.g. 1, 2, 7): ")
+    input_list = input("Please input the set of coefficients associated with each position,\nseparated by commas (e.g. 1,2,7): ")
     a = input_list.split(',')
     a = np.array([float(coef) for coef in a])
     
