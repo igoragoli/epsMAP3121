@@ -18,6 +18,7 @@ from progress.bar import Bar
 # 1.1 Functions
 # ---------------
 
+# DONE - Working correctly.
 def f(t, x, pk):
     """
     Describes heat sources through time applied at discrete points.
@@ -30,7 +31,7 @@ def f(t, x, pk):
     """
     h = deltax
     r = 10*(1 + np.cos(5*t))
-    x = round(x, 7) # Why ?
+    #x = round(x, 7) # Why ?
 
     if np.abs(x - pk) < h/2:
         f = r/h
@@ -121,6 +122,7 @@ def LDLtDecomposition(A):
     D = np.eye(n) * D
     return (D, L)
 
+# DONE - Working correctly.
 def triDiagSolveLinearSystem(diagA, subdiagA, b):
     """
     Solves the linear system Ax = b, where A is a tridiagonal matrix.
@@ -207,6 +209,7 @@ def solveLinearSystem(A, b):
 
     return x
 
+# DONE - Working correctly.
 def buildNormalSystem(f, g):
     """
     Builds the normal system for the Least Squares Method. 
@@ -221,8 +224,8 @@ def buildNormalSystem(f, g):
     """
 
     n = g.shape[0]
-    A = np.zeros(n,n)
-    b = np.zeros(n,1)
+    A = np.zeros((n,n))
+    b = np.zeros(n)
 
     for i in range(n):
         for j in range(i, n):
@@ -237,7 +240,7 @@ def buildNormalSystem(f, g):
 # 1.2 Iterative Methods
 # ---------------
 
-# CHANGE NEEDED
+# DONE - Working correctly.
 def crankNicolson(u, T, pk):
     """
     The crank Nicolson method is described by equation (35) in the problem description.
@@ -321,119 +324,27 @@ if option == '1':
     print()
     input_list = input("Please input the set of positions p, separated by commas (e.g. 0.35, 0.25, 0.75): ")
     p = input_list.split(',')
+    p = np.array([float(pos) for pos in p])
     n = p.shape[0]
+    
     input_list = input("Please input the set of coefficients associated with each position,\nseparated by commas (e.g. 1, 2, 7): ")
     a = input_list.split(',')
-    solutions = np.zeros((n,1)) # We will store the solutions for each point in p here
+    a = np.array([float(coef) for coef in a])
+    
+    solutions = np.zeros((n,M+1)) # We will store the solutions for each point in p here
+    print()
     for k in range(n):
         print("Calculating the solution for position p" + str(k+1) + ".")
-        u = np.zeros((M+1, N+1))
-        u = crankNicolson(u, T, p[k])
+        u0 = np.zeros((M+1, N+1))
+        u = crankNicolson(u0, T, p[k])
         solutions[k] = u[M,:] # The solution at t = T
-    uT = sum(a[k]*solutions[k] for k in range(n)) # Linear combination of the solutions
-
-
-
-
-
-"""
-# Select functions
-# a1 is the first function described at item (a). a2 is the second function described at item (a)
-print()
-print("Types :           '0'               |                          '1'                             ")
-print("------------------------------------|----------------------------------------------------------")
-print("f(t,x): 10x^2(x-1) - 60xt + 20t (a1)|     5e^(t - x)*(5t^2*cos(5tx) - sin(5tx)*(x + 2t))    (b)")
-print("u0(x) :            0         (a1, c)|                         e^(-x)                        (b)")
-print("g1(t) :            0     (a1, a2, c)|                         e^(t)                         (b)")
-print("g2(t) :            0     (a1, a2, c)|                         e^(t-1)                       (b)")
-print()
-print("Types :             '2'             |                          '3'                             ")
-print("------------------------------------|----------------------------------------------------------")
-print("f(t,x):   source at p = 0.25 (c)    | 10cos(10t)x^2(1-x)^2-(1 + sin(10t))(12x^2 - 12x + 2) (a2)")
-print("u0(x) :             N.A.            |                      x^2(1-x)^2                      (a2)")
-print("g1(t) :             N.A.            |                         N.A.                             ")
-print("g2(t) :             N.A.            |                         N.A.                             ")
-print()
-input_list = input("Please input f, u0, g1 and g2 types respectively,\nseparated by commas (e.g. 2,0,0,0 for item (c)):")
-ftype, u0type, g1type, g2type = input_list.split(',')
-
-ftype = int(ftype)
-u0type = int(u0type)
-g1type = int(g1type)
-g2type = int(g2type)
-
-if (ftype not in [0,1,2,3]) or (u0type not in [0,1,3]) or (g1type not in [0,1]) or (g2type not in [0,1]):
-    print()
-    print("Invalid input.")
-
-# Defining the grid
-u = np.zeros((M+1, N+1))
-
-# Applying initial conditions functions
-for i in range(N+1):
-    u[0,i] = u0(i*deltax, u0type)
-for k in range(M+1):
-    u[k,0] = g1(k*deltat, g1type)
-    u[k,N] = g2(k*deltat, g2type)
-
-# Select method
-print()
-print("Method Number |       Method    ")
-print("--------------|-----------------")
-print("      0       | explicitFD()    ")
-print("      1       | implicitEuler() ")
-print("      2       | crankNicolson() ")
-print()
-method = input("Please input the number corresponding to the method you would like to use: ")
-print()
-
-# Run methods
-method = int(method)
-if method == 0:
-    result = explicitFD(u, T, ftype)
-elif method == 1:
-    result = implicitEuler(u, T, ftype, g1type, g2type)
-elif method == 2:
-    result = crankNicolson(u, T, ftype, g1type, g2type)
-else:
-    print("Invalid input.")
-
-
-# Plot graphs
-print("Plotting graphs")
-tempGraphs(result)
-
-# Calculate error norms
-if (ftype != 2):
-    errorNorms = np.zeros((M+1,1))
-    truncErrorNorms = np.zeros((M+1,1))
-    bar = Bar("Calculating error norms", max=M+1)
-    for k in range(M+1):
-        errorNorms[k] = errorNorm(k, u, T, ftype)
-        truncErrorNorms[k] = truncErrorNorm(k, u, T, ftype, method)
-        bar.next()
-    bar.finish()
-
-    resErrorNorm = errorNorms[M, 0] # Error norm "result". We want the error norm at t = T
-    resTruncErrorNorm = np.amax(truncErrorNorms) # Truncation error norm "result". We want the maximum truncation error at all times
     
-    print("Absolute error norm at t = T       : ", resErrorNorm)
-    print("Truncation error norm at all times : ", resTruncErrorNorm)
-
-    myfile = open("normasDosErros.txt", 'a')
-    errorString = "Norma do erro absoluto em t = T                 -  N = " + str(N) + " e M = " + str(M) + ": " + str(resErrorNorm) + "\n"
-    truncErrorString = "Norma do erro de truncamento em todos os tempos -  N = " + str(N) + " e M = " + str(M) + ": " + str(resTruncErrorNorm) + "\n\n"
-
-    myfile.write(errorString)
-    myfile.write(truncErrorString)
-
-    myfile.close()
-
-print()
-"""
-A = np.array([[4, -1, 1], [-1, 4.25, 2.75], [1, 2.75, 3.5]])
-print(A)
-b = np.array([1, 2, 3])
-print(b)
-x = solveLinearSystem(A, b)
-print(x)
+    print("Calculating set of coefficients.")
+    uT = sum(a[k]*solutions[k] for k in range(n)) # Linear combination of the solutions
+    A, b = buildNormalSystem(uT, solutions)
+    a = solveLinearSystem(A, b)
+    print("The set of coefficients given by the user is: " + str(a))
+elif option == '2':
+    print("Cada macaco no seu galho.")
+else: 
+    print("Invalid number.")
