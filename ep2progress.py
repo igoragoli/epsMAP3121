@@ -269,7 +269,6 @@ def readTestFile(fileName):
 
     return p, uT
 
-
 def tempGraphs(u, onlyFinalResult=1):
     """
     Plots graphs related to the temperature: the evolution of the temperature in the bar through time, 
@@ -277,7 +276,7 @@ def tempGraphs(u, onlyFinalResult=1):
     Arguments:
         - u: 2-dimensional array that stores the temperature at each
           position xi and time tk
-        - onlyFinalResult: determines if the graph plotted are going
+        - onlyFinalResult: determines if the graphs plotted are going
           to be only the last one, or the evolution as well.
     """
     M = u.shape[0] - 1
@@ -413,6 +412,7 @@ if option == '1':
         u0 = np.zeros((M+1, N+1))
         u = crankNicolson(u0, T, p[k])
         solutions[k] = u[M,:] # The solution at t = T
+        solutions[k] = solutions[k][1:-1] # We must cut off the elements at the extremities!
     
     print("Calculating set of coefficients.")
     uT = sum(a[k]*solutions[k] for k in range(n)) # Linear combination of the solutions
@@ -420,6 +420,13 @@ if option == '1':
     a = solveLinearSystem(A, b)
     print("The set of coefficients given by the user is: " + str(a))
 elif option == '2':
-    print("Cada macaco no seu galho.")
+    p, uTFile = readTestFile("teste.txt")
+    uT = np.zeros((N+1,1))
+    step = round((u.shape[0] - 1))/N
+    i = 0
+    for k in range(0, u.shape[0], step):
+        uT[i] = uTFile[k]
+        i = i + 1
+
 else: 
     print("Invalid number.")
