@@ -311,6 +311,17 @@ def tempGraphs(u, onlyFinalResult=1):
     fig.savefig(final)
 
     plt.show()
+
+def printResults(p, a):
+    """
+    Prints the results of the problem: each position pk and its corresponding coefficient ak.
+    """
+    print("|  k  |    pk    |    ak    | ")
+    print("|-----|----------|----------|")
+    nf = p.shape[0]
+    for k in range(nf):
+        print("|{:^5d}|{:^10.3f}|{:^10.3f}|".format(k, p[k], a[k]))
+        
 # ---------------
 # 1.2 Iterative Methods
 # ---------------
