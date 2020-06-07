@@ -6,6 +6,7 @@
 # Igor Nunes Ferro               - 10774138        #
 ####################################################
 
+import random as rd
 import numpy as np
 import matplotlib.pyplot as plt
 from progress.bar import Bar
@@ -236,6 +237,18 @@ def buildNormalSystem(f, g):
 
     return A, b
 
+def quadraticError(uT, solutions, a):
+    N = uT.shape[0] + 1
+    nf = solutions.shape[0]
+    deltax = 1/N
+    """for i in range(N - 1):
+        sum1 = 0
+        for k in range(nf):
+            sum1 = sum1 + [k]*solutions[k][i]"""
+    sumE2 = sum(uT[i] - sum(a[k]*solutions[k][i] for k in range(nf)) for i in range(N-1))
+    e2 = np.sqrt(deltax*sumE2**2)
+    return e2
+
 def readTestFile(fileName):
     """
     Reads a .txt test file with the following format:
@@ -312,7 +325,7 @@ def tempGraphs(u, onlyFinalResult=1):
 
     plt.show()
 
-def printResults(p, a):
+def printResults(p, a, uT=None, solutions=None, printE2=0):
     """
     Prints the results of the problem: each position pk and its corresponding coefficient ak.
     """
@@ -321,7 +334,11 @@ def printResults(p, a):
     nf = p.shape[0]
     for k in range(nf):
         print("|{:^5d}|{:^10.3f}|{:^10.3f}|".format(k, p[k], a[k]))
-
+    if printE2 != 0:
+        e2 = quadraticError(uT, solutions, a)
+        print("|---------------------------|")
+        print("|{:^27.9f}|".format(10))
+        
 # ---------------
 # 1.2 Iterative Methods
 # ---------------
@@ -391,24 +408,19 @@ print()
 print("Options: ")
 print("    (a) Inverse problem verification # 1")
 print("        | N = 128 | nf = 1 | p1 = 0.35 | a1 = 7 |")
-print()
-
 print("    (b) Inverse problem verification # 2")
 print("        | N = 128 | nf = 4 | p1 = 0.15 | a1 = 2.3 |")
 print("                           | p2 = 0.30 | a2 = 3.7 |")
 print("                           | p3 = 0.70 | a3 = 0.3 |")
 print("                           | p4 = 0.80 | a4 = 4.2 |")
-print()
 print("    (c) Use the existing solution given in 'teste.txt' without noise.")
-print()
-print()
 print("    (d) Use the existing solution given in 'teste.txt' with noise.")
 print()
 option = input("Please input the letter corresponding to your choice: ")
 
 if option == 'a' or option == 'b':
     if option == 'a':
-        N = 128
+        N = 32
         deltax = 1/N
         T = 1
         nf = 1
@@ -416,57 +428,72 @@ if option == 'a' or option == 'b':
         a = np.array([7])
         
     elif option == 'b':
-        N = 128
+        N = 32
         deltax = 1/N
         T = 1
         nf = 4
         p = np.array([0.15, 0.30, 0.70, 0.80])
         a = np.array([2.3, 3.7, 0.3, 4.2])
 
-    solutions = np.zeros((nf, N+1)) # We will store the solutions for each point in p here
+    solutionsAux = np.zeros((nf, N+1)) 
+    solutions = np.zeros((nf, N-1)) # We will store the solutions for each point in p here
     print()
     for k in range(nf):
         print("Calculating the solution for position p" + str(k+1) + ".")
         u0 = np.zeros((N+1, N+1))
         u = crankNicolson(u0, T, p[k])
-        solutions[k] = u[N,:] # The solution at t = T
-        solutions[k] = solutions[k][1:-1] # We must cut off the elements at the extremities!
+        solutionsAux[k] = u[N,:] # The solution at t = T
+        solutions[k] = solutionsAux[k][1:-1] # We must cut off the elements at the extremities!
         
     print("Calculating set of coefficients.")
     uT = sum(a[k]*solutions[k] for k in range(nf)) # Linear combination of the solutions
     A, b = buildNormalSystem(uT, solutions)
     a = solveLinearSystem(A, b)
     print()
+    print("Results:")
     printResults(p, a)
 
 elif option == 'c' or option == 'd':
     print()
     N = input("Please input the number of divisions in the bar length N: ")
+    N = int(N)
     deltax = 1/N
     T = 1
+
     p, uTFile = readTestFile("teste.txt")
     nf = p.shape[0]
     uT = np.zeros((N+1,1))
-    step = round((u.shape[0] - 1))/N
+    step = round((uTFile.shape[0] - 1)/N)
     i = 0
-    for k in range(0, u.shape[0], step):
+    for k in range(0, uTFile.shape[0], step):
         uT[i] = uTFile[k]
         i = i + 1
     uT = uT[1:-1] # We must cut off the elements at the extremities!
 
-    solutions = np.zeros((nf, N+1)) # We will store the solutions for each point in p here
+    if option == 'd':
+        for k in range(uT.shape[0]):
+            r = 2*rd.random() - 0.5
+            noise = 1 + r*0.01
+            uT[k] = uT[k]*noise
+
+    solutionsAux = np.zeros((nf, N+1)) 
+    solutions = np.zeros((nf, N-1)) # We will store the solutions for each point in p here
     for k in range(nf):
         print("Calculating the solution for position p" + str(k+1) + ".")
         u0 = np.zeros((N+1, N+1))
         u = crankNicolson(u0, T, p[k])
-        solutions[k] = u[N,:] # The solution at t = T
-        solutions[k] = solutions[k][1:-1] # We must cut off the elements at the extremities!
+        solutionsAux[k] = u[N,:] # The solution at t = T
+        solutions[k] = solutionsAux[k][1:-1] # We must cut off the elements at the extremities!
     
     print("Calculating set of coefficients.")
     A, b = buildNormalSystem(uT, solutions)
     a = solveLinearSystem(A, b)
     print()
-    printResults(p, a)
+    print("Results:")
+    """, uT, solutions, printE2=1"""
+    printResults(p, a, uT, solutions, printE2=1)
+    tempGraphs(uTFile, onlyFinalResult=1)
+    tempGraphs(uT, onlyFinalResult=1)
 
 else: 
     print("Invalid option.")
