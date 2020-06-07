@@ -321,7 +321,7 @@ def printResults(p, a):
     nf = p.shape[0]
     for k in range(nf):
         print("|{:^5d}|{:^10.3f}|{:^10.3f}|".format(k, p[k], a[k]))
-        
+
 # ---------------
 # 1.2 Iterative Methods
 # ---------------
@@ -387,17 +387,6 @@ print("|               Simulations!             |")
 print("|________________________________________|")
 print()
 
-input_list = input("Please input T and N respectively, separated by commas (e.g. 1,10): ")
-T, N = input_list.split(',')
-
-T = int(T)
-N = int(N)
-M = N
-
-deltax = 1/N
-deltat = T/M
-lbd = deltat/deltax**2 # Lambda
-
 print()
 print("Options: ")
 print("    (a) Inverse problem verification # 1")
@@ -420,34 +409,41 @@ option = input("Please input the letter corresponding to your choice: ")
 if option == 'a' or option == 'b':
     if option == 'a':
         N = 128
+        deltax = 1/N
+        T = 1
         nf = 1
         p = np.array([0.35])
         a = np.array([7])
         
     elif option == 'b':
         N = 128
+        deltax = 1/N
+        T = 1
         nf = 4
         p = np.array([0.15, 0.30, 0.70, 0.80])
         a = np.array([2.3, 3.7, 0.3, 4.2])
 
-    solutions = np.zeros((nf, M+1)) # We will store the solutions for each point in p here
+    solutions = np.zeros((nf, N+1)) # We will store the solutions for each point in p here
     print()
     for k in range(nf):
         print("Calculating the solution for position p" + str(k+1) + ".")
-        u0 = np.zeros((M+1, N+1))
+        u0 = np.zeros((N+1, N+1))
         u = crankNicolson(u0, T, p[k])
-        solutions[k] = u[M,:] # The solution at t = T
+        solutions[k] = u[N,:] # The solution at t = T
         solutions[k] = solutions[k][1:-1] # We must cut off the elements at the extremities!
         
     print("Calculating set of coefficients.")
     uT = sum(a[k]*solutions[k] for k in range(nf)) # Linear combination of the solutions
     A, b = buildNormalSystem(uT, solutions)
     a = solveLinearSystem(A, b)
-    print("The set of coefficients given by the user is: " + str(a))
+    print()
+    printResults(p, a)
 
 elif option == 'c' or option == 'd':
     print()
     N = input("Please input the number of divisions in the bar length N: ")
+    deltax = 1/N
+    T = 1
     p, uTFile = readTestFile("teste.txt")
     nf = p.shape[0]
     uT = np.zeros((N+1,1))
@@ -458,18 +454,19 @@ elif option == 'c' or option == 'd':
         i = i + 1
     uT = uT[1:-1] # We must cut off the elements at the extremities!
 
-    solutions = np.zeros((nf, M+1)) # We will store the solutions for each point in p here
+    solutions = np.zeros((nf, N+1)) # We will store the solutions for each point in p here
     for k in range(nf):
         print("Calculating the solution for position p" + str(k+1) + ".")
-        u0 = np.zeros((M+1, N+1))
+        u0 = np.zeros((N+1, N+1))
         u = crankNicolson(u0, T, p[k])
-        solutions[k] = u[M,:] # The solution at t = T
+        solutions[k] = u[N,:] # The solution at t = T
         solutions[k] = solutions[k][1:-1] # We must cut off the elements at the extremities!
     
     print("Calculating set of coefficients.")
     A, b = buildNormalSystem(uT, solutions)
     a = solveLinearSystem(A, b)
-    print("The set of coefficients for each position is: " + str(a))
+    print()
+    printResults(p, a)
 
 else: 
     print("Invalid option.")
