@@ -389,25 +389,66 @@ lbd = deltat/deltax**2 # Lambda
 
 print()
 print("Options: ")
-print("    1. Estimate the solution uT(x) with crank-Nicolson method given a") 
-print("    set of positions p where punctual forces will be applied.")
-print("    2. Use the existing solution in 'teste.txt'.")
-option = input("Please input the number corresponding to your choice: ")
+print("    (a) Inverse problem verification # 1")
+print("        | N = 128 | nf = 1 | p1 = 0.35 | a1 = 7 |")
+print()
 
-if option == '1':
+print("    (b) Inverse problem verification # 2")
+print("        | N = 128 | nf = 4 | p1 = 0.15 | a1 = 2.3 |")
+print("                           | p2 = 0.30 | a2 = 3.7 |")
+print("                           | p3 = 0.70 | a3 = 0.3 |")
+print("                           | p4 = 0.80 | a4 = 4.2 |")
+print()
+print("    (c) Use the existing solution given in 'teste.txt' without noise.")
+print()
+print()
+print("    (d) Use the existing solution given in 'teste.txt' with noise.")
+print()
+option = input("Please input the letter corresponding to your choice: ")
+
+if option == 'a' or option == 'b':
+    if option == 'a':
+        N = 128
+        nf = 1
+        p = np.array([0.35])
+        a = np.array([7])
+        
+    elif option == 'b':
+        N = 128
+        nf = 4
+        p = np.array([0.15, 0.30, 0.70, 0.80])
+        a = np.array([2.3, 3.7, 0.3, 4.2])
+
+    solutions = np.zeros((n, M+1)) # We will store the solutions for each point in p here
     print()
-    input_list = input("Please input the set of positions p, separated by commas (e.g. 0.35,0.25,0.75): ")
-    p = input_list.split(',')
-    p = np.array([float(pos) for pos in p])
-    n = p.shape[0]
-    
-    input_list = input("Please input the set of coefficients associated with each position,\nseparated by commas (e.g. 1,2,7): ")
-    a = input_list.split(',')
-    a = np.array([float(coef) for coef in a])
-    
-    solutions = np.zeros((n,M+1)) # We will store the solutions for each point in p here
+    for k in range(nf):
+        print("Calculating the solution for position p" + str(k+1) + ".")
+        u0 = np.zeros((M+1, N+1))
+        u = crankNicolson(u0, T, p[k])
+        solutions[k] = u[M,:] # The solution at t = T
+        solutions[k] = solutions[k][1:-1] # We must cut off the elements at the extremities!
+        
+    print("Calculating set of coefficients.")
+    uT = sum(a[k]*solutions[k] for k in range(n)) # Linear combination of the solutions
+    A, b = buildNormalSystem(uT, solutions)
+    a = solveLinearSystem(A, b)
+    print("The set of coefficients given by the user is: " + str(a))
+
+elif option == 'c' or option == 'd':
     print()
-    for k in range(n):
+    N = input("Please input the number of divisions in the bar length N: ")
+    p, uTFile = readTestFile("teste.txt")
+    nf = p.shape[0]
+    uT = np.zeros((N+1,1))
+    step = round((u.shape[0] - 1))/N
+    i = 0
+    for k in range(0, u.shape[0], step):
+        uT[i] = uTFile[k]
+        i = i + 1
+    uT = uT[1:-1] # We must cut off the elements at the extremities!
+
+    solutions = np.zeros((n, M+1)) # We will store the solutions for each point in p here
+    for k in range(nf):
         print("Calculating the solution for position p" + str(k+1) + ".")
         u0 = np.zeros((M+1, N+1))
         u = crankNicolson(u0, T, p[k])
@@ -415,18 +456,9 @@ if option == '1':
         solutions[k] = solutions[k][1:-1] # We must cut off the elements at the extremities!
     
     print("Calculating set of coefficients.")
-    uT = sum(a[k]*solutions[k] for k in range(n)) # Linear combination of the solutions
     A, b = buildNormalSystem(uT, solutions)
     a = solveLinearSystem(A, b)
-    print("The set of coefficients given by the user is: " + str(a))
-elif option == '2':
-    p, uTFile = readTestFile("teste.txt")
-    uT = np.zeros((N+1,1))
-    step = round((u.shape[0] - 1))/N
-    i = 0
-    for k in range(0, u.shape[0], step):
-        uT[i] = uTFile[k]
-        i = i + 1
+    print("The set of coefficients for each position is: " + str(a))
 
 else: 
-    print("Invalid number.")
+    print("Invalid option.")
