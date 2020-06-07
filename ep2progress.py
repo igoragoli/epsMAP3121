@@ -241,10 +241,6 @@ def quadraticError(uT, solutions, a):
     N = uT.shape[0] + 1
     nf = solutions.shape[0]
     deltax = 1/N
-    """for i in range(N - 1):
-        sum1 = 0
-        for k in range(nf):
-            sum1 = sum1 + [k]*solutions[k][i]"""
     sumE2 = sum(uT[i] - sum(a[k]*solutions[k][i] for k in range(nf)) for i in range(N-1))
     e2 = np.sqrt(deltax*sumE2**2)
     e2 = e2[0]
@@ -283,47 +279,21 @@ def readTestFile(fileName):
 
     return p, uT
 
-def tempGraphs(u, onlyFinalResult=1):
+def tempGraphs(u):
     """
-    Plots graphs related to the temperature: the evolution of the temperature in the bar through time, 
-    and the temperature at t = T.
-    Arguments:
-        - u: 2-dimensional array that stores the temperature at each
-          position xi and time tk
-        - onlyFinalResult: determines if the graphs plotted are going
-          to be only the last one, or the evolution as well.
     """
-    M = u.shape[0] - 1
-    N = u.shape[1] - 1
+    N = u.shape[0] - 1 
     deltax = 1/N
-
-    step = int(M/10)
-
-    if (onlyFinalResult == 0):
-        fig = plt.figure()
-        for i in range(0, M + 1, step):
-            y = u[i, :]  
-            x = np.linspace(0,N,N+1)*deltax
-            plt.plot(x, y, label='t = ' + str(i/M))
-        
-        plt.legend()
-        plt.suptitle('Evolução da temperatura u(t,x) com o tempo t')
-        plt.xlabel('Comprimento da barra')
-        plt.ylabel('Temperatura')
-        evolucao = "evoluN=" + str(N) + "M=" + str(M) + ".png"
-        fig.savefig(evolucao)
-    
     fig = plt.figure()
-    y = u[M, :]
+    y = u
     x = np.linspace(0,N,N+1)*deltax
     plt.plot(x, y, label='Temperatura com t = T')
     plt.xlabel('Comprimento da barra')
     plt.ylabel('Temperatura')
     plt.suptitle('Temperatura em t = T')
     fig.legend()
-    final = "finalN=" + str(N) + "M=" + str(M) + ".png"
+    final = "finalN=" + str(N) + ".png"
     fig.savefig(final)
-
     plt.show()
 
 def printResults(p, a, e2=None):
@@ -493,8 +463,8 @@ elif option == 'c' or option == 'd':
     print("Results:")
     e2 = quadraticError(uT, solutions, a)
     printResults(p, a, e2)
-    tempGraphs(uTFile, onlyFinalResult=1)
-    tempGraphs(uT, onlyFinalResult=1)
+    tempGraphs(uTFile[1:-1])
+    tempGraphs(uT)
 
 else: 
     print("Invalid option.")
