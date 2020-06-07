@@ -247,6 +247,7 @@ def quadraticError(uT, solutions, a):
             sum1 = sum1 + [k]*solutions[k][i]"""
     sumE2 = sum(uT[i] - sum(a[k]*solutions[k][i] for k in range(nf)) for i in range(N-1))
     e2 = np.sqrt(deltax*sumE2**2)
+    e2 = e2[0]
     return e2
 
 def readTestFile(fileName):
@@ -325,7 +326,7 @@ def tempGraphs(u, onlyFinalResult=1):
 
     plt.show()
 
-def printResults(p, a, uT=None, solutions=None, printE2=0):
+def printResults(p, a, e2=None):
     """
     Prints the results of the problem: each position pk and its corresponding coefficient ak.
     """
@@ -334,10 +335,10 @@ def printResults(p, a, uT=None, solutions=None, printE2=0):
     nf = p.shape[0]
     for k in range(nf):
         print("|{:^5d}|{:^10.3f}|{:^10.3f}|".format(k, p[k], a[k]))
-    if printE2 != 0:
-        e2 = quadraticError(uT, solutions, a)
+    if e2 != None:
+        print("|      quadratic error      |")
         print("|---------------------------|")
-        print("|{:^27.9f}|".format(10))
+        print("|{:^27.9f}|".format(e2))
         
 # ---------------
 # 1.2 Iterative Methods
@@ -490,8 +491,8 @@ elif option == 'c' or option == 'd':
     a = solveLinearSystem(A, b)
     print()
     print("Results:")
-    """, uT, solutions, printE2=1"""
-    printResults(p, a, uT, solutions, printE2=1)
+    e2 = quadraticError(uT, solutions, a)
+    printResults(p, a, e2)
     tempGraphs(uTFile, onlyFinalResult=1)
     tempGraphs(uT, onlyFinalResult=1)
 
