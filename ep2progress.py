@@ -419,7 +419,7 @@ if option == 'a' or option == 'b':
         p = np.array([0.15, 0.30, 0.70, 0.80])
         a = np.array([2.3, 3.7, 0.3, 4.2])
 
-    solutions = np.zeros((n, M+1)) # We will store the solutions for each point in p here
+    solutions = np.zeros((nf, M+1)) # We will store the solutions for each point in p here
     print()
     for k in range(nf):
         print("Calculating the solution for position p" + str(k+1) + ".")
@@ -429,7 +429,7 @@ if option == 'a' or option == 'b':
         solutions[k] = solutions[k][1:-1] # We must cut off the elements at the extremities!
         
     print("Calculating set of coefficients.")
-    uT = sum(a[k]*solutions[k] for k in range(n)) # Linear combination of the solutions
+    uT = sum(a[k]*solutions[k] for k in range(nf)) # Linear combination of the solutions
     A, b = buildNormalSystem(uT, solutions)
     a = solveLinearSystem(A, b)
     print("The set of coefficients given by the user is: " + str(a))
@@ -447,7 +447,7 @@ elif option == 'c' or option == 'd':
         i = i + 1
     uT = uT[1:-1] # We must cut off the elements at the extremities!
 
-    solutions = np.zeros((n, M+1)) # We will store the solutions for each point in p here
+    solutions = np.zeros((nf, M+1)) # We will store the solutions for each point in p here
     for k in range(nf):
         print("Calculating the solution for position p" + str(k+1) + ".")
         u0 = np.zeros((M+1, N+1))
