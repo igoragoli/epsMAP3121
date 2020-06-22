@@ -1,9 +1,25 @@
+To-Do List
+
 1. Change f() to return the force f = r(t)ghk(x) given a point pk. - OK
 2. Update LDLtDecomposition() to support sparce matrices. - OK
 3. Update solveLinearSystem() to support sparce matrices. - OK
 4. Code buildNormalSystem() - OK
-5. Code readTestFile() to read teste.txt
+5. Code readTestFile() to read teste.txt - Done, not tested
+6. Modify tempGraphs to support plotting only the graph at t = T. Maybe an argument like 
+   tempGraphs(onlyFinal=1), where onlyFinal indicates whether we must plot only the final graph or
+   the intermediate ones. - OK
+7. Code quadraticError(uT, solutions)
+8. Code printResults() - OK
+9. Fix the broadcast problem between solutions[k] and solutions[k][1:-1] - OK
+10. Check if quadraticError is working correctly
+11. Check if tempGraphs is working correctly
+12. Discuss about the total execution time 
+13. Check how the teachers want their graphs 
 
 Now, the old LDLtDecomposition() used in Crank-Nicolson will be called 
 "triDiagLDLtDecomposition". Also, solveLinearSystem will be renamed to 
 "triDiagSolveLinearSystem".
+
+Test List 
+(a) - Test was successful
+(b) - Test was successful
