@@ -459,7 +459,6 @@ elif option == 'c' or option == 'd':
     print("Calculating set of coefficients.")
     A, b = buildNormalSystem(uT, solutions)
     a = solveLinearSystem(A, b)
-    print()
     print("Results:")
     e2 = quadraticError(uT, solutions, a)
     printResults(p, a, e2)
