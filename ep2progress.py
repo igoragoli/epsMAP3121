@@ -241,8 +241,8 @@ def quadraticError(uT, solutions, a):
     N = uT.shape[0] + 1
     nf = solutions.shape[0]
     deltax = 1/N
-    sumE2 = sum(uT[i] - sum(a[k]*solutions[k][i] for k in range(nf)) for i in range(N-1))
-    e2 = np.sqrt(deltax*sumE2**2)
+    sumE2 = sum((uT[i] - sum(a[k]*solutions[k][i] for k in range(nf)))**2 for i in range(N-1))
+    e2 = np.sqrt(deltax*sumE2)
     e2 = e2[0]
     return e2
 
