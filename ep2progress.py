@@ -279,8 +279,36 @@ def readTestFile(fileName):
 
     return p, uT
 
+def solutionsGraphs(solutions):
+    """
+    Print the graphs of the temperature of the bar by x (from 0 to 1) for each peak.
+    Arguments:
+    - solutions: 2-d array that stores the temperature at each position xi at time T for peak pk
+    """
+    nf = solutions.shape[0]
+    N = solutions.shape[1] - 1 
+    deltax = 1/N
+    
+    fig = plt.figure()
+    for i in range(nf):
+        y = solutions[i, :]  
+        x = np.linspace(0,N,N+1)*deltax
+        plt.plot(x, y, label='pos p' + str(i+1))
+    
+    plt.legend()
+    plt.suptitle('Solução para cada pico pk')
+    plt.xlabel('Comprimento da barra')
+    plt.ylabel('Temperatura')
+    solucoes = "solucaoN=" + str(N) + "nf=" + str(nf) + ".png"
+    fig.savefig(solucoes)
+    plt.show()
+
+    
 def tempGraphs(u):
     """
+    Print the final graph of the temperature of the bar by x (from 0 to 1).
+    Arguments:
+    - u: array that stores the temperature at each position xi at time T
     """
     N = u.shape[0] - 1 
     deltax = 1/N
@@ -462,6 +490,7 @@ elif option == 'c' or option == 'd':
     print("Results:")
     e2 = quadraticError(uT, solutions, a)
     printResults(p, a, e2)
+    solutionsGraphs(solutions)
     tempGraphs(uTFile[1:-1])
     tempGraphs(uT)
 
