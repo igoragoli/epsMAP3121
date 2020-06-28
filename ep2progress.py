@@ -304,7 +304,7 @@ def solutionsGraphs(solutions):
     plt.show()
 
     
-def tempGraphs(u):
+def tempGraphs(u, arq=0):
     """
     Print the final graph of the temperature of the bar by x (from 0 to 1).
     Arguments:
@@ -320,7 +320,10 @@ def tempGraphs(u):
     plt.ylabel('Temperatura')
     plt.suptitle('Temperatura em t = T')
     fig.legend()
-    final = "finalN=" + str(N) + ".png"
+    if arq == 1:
+        final = "finalN=" + str(N) + "doArquivo.png"
+    else:
+         final = "finalN=" + str(N) + "combLinear.png"
     fig.savefig(final)
     plt.show()
 
@@ -451,6 +454,7 @@ if option == 'a' or option == 'b':
     print()
     print("Results:")
     printResults(p, a)
+    tempGraphs(uT)
 
 elif option == 'c' or option == 'd':
     print()
@@ -489,10 +493,13 @@ elif option == 'c' or option == 'd':
     a = solveLinearSystem(A, b)
     print("Results:")
     e2 = quadraticError(uT, solutions, a)
-    printResults(p, a, e2)
-    solutionsGraphs(solutions)
-    tempGraphs(uTFile[1:-1])
-    tempGraphs(uT)
 
+    printResults(p, a, e2)
+    solutionsGraphs(solutions)      # Plotting the solutions graph
+    tempGraphs(uTFile[1:-1], 1)        # Plotting the graph from the file, with all the points
+    tempGraphs(uT, 1)                  # Plotting the graph from the file, with the proper points due to N being different than 2048
+
+    uTcoef = sum(a[k]*solutions[k] for k in range(nf)) # Linear combination of the solutions
+    tempGraphs(uTcoef)
 else: 
     print("Invalid option.")
