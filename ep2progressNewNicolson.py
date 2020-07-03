@@ -446,7 +446,7 @@ option = input("Please input the letter corresponding to your choice: ")
 
 if option == 'a' or option == 'b':
     if option == 'a':
-        N = 32
+        N = 128
         deltax = 1/N
         T = 1
         nf = 1
@@ -454,7 +454,7 @@ if option == 'a' or option == 'b':
         a = np.array([7])
         
     elif option == 'b':
-        N = 32
+        N = 128
         deltax = 1/N
         T = 1
         nf = 4
@@ -482,6 +482,7 @@ if option == 'a' or option == 'b':
     print("Results:")
     printResults(p, a)
     tempGraphs(uT)
+    solutionsGraphs(solutions)
 
 elif option == 'c' or option == 'd':
     print()
@@ -521,6 +522,7 @@ elif option == 'c' or option == 'd':
     print("Calculating set of coefficients.")
     A, b = buildNormalSystem(uT, solutions)
     a = solveLinearSystem(A, b)
+    print()
     print("Results:")
     e2 = quadraticError(uT, solutions, a)
 
@@ -533,3 +535,4 @@ elif option == 'c' or option == 'd':
     tempGraphs(uTcoef)
 else: 
     print("Invalid option.")
+
