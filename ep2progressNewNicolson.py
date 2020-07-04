@@ -19,7 +19,7 @@ from progress.bar import Bar
 # 1.1 Functions
 # ---------------
 
-# DONE - Working correctly.
+ 
 def f(t, x, pk):
     """
     Describes heat sources through time applied at discrete points.
@@ -32,8 +32,7 @@ def f(t, x, pk):
     """
     h = deltax
     r = 10*(1 + np.cos(5*t))
-    #x = round(x, 7) # Why ?
-
+    
     if np.abs(x - pk) < h/2:
         f = r/h
     else:
@@ -105,7 +104,16 @@ def triDiagLDLtDecomposition(diagonalA, subdiagonalA):
     return(Darr, Larr)
 
 def generateMatrices(u):
-
+    """
+    This function creates the LDLt decomposition for the Crank-Nicolson's method.
+    It's only necessary to decompose the matrix once, because it won't change
+    for the same problem, since it depends only of N.
+    Arguments:
+    - u: 2D array used to calculate the temperature evolution for Crank-Nicolson's method.
+    Returns:
+    - diagD: array containing the diagonal of the matrix D from LDLt decomposition.
+    - subdiagL: array containing the subdiagonal of the matrix L from LDLt decomposition.
+    """
     M = u.shape[0] - 1
     N = u.shape[1] - 1
     deltat = T/M
@@ -128,39 +136,41 @@ def generateMatrices(u):
                                                                 # A can be described by the multiplication L * D * Lt
                                                                 # Since A is the same for each Nicolson implementation, we can keep the LDLt decomposition.
                                                                 # The only part that changes for each linear system, in this method, is the "b" matrix.  
+    
     print("Matrices generated. Now, running Crank Nicolson's method.")
 
     return diagD, subdiagL
 
-# DONE - Working correctly.
+ 
 def LDLtDecomposition(A):
     """
     Decomposes the matrix A into 2 matrices: L and D.
     The product L*D*L^t equals A.
     Arguments:
-        - A
+        - A: matrix to be decomposed. It must be symmetric.
     Returns:
-        - L
-        - D
+        - L: lower triangular matrix.
+        - D: diagonal matrix.
     """
     n = A.shape[0]
     L = np.eye(n)
     D = np.zeros((n, 1))
+
     for i in range(0, n):
         D[i] = A[i, i] - np.dot(L[i, 0:i]**2, D[0:i])
         for j in range(i+1, n):
             L[j, i] = (A[j, i] - np.dot(L[j, 0:i]*L[i, 0:i], D[0:i])) / D[i]
+
     D = np.eye(n) * D
     return (D, L)
 
-
-# DONE - Working correctly.
+ 
 def triDiagSolveLinearSystem(diagD, subdiagL, b):
     """
     Solves the linear system Ax = L*D*Lt * x = b, where A is a tridiagonal matrix, L and D are the LDLt decomposition matrices.
     This function was optimized for the Crank-Nicolson method in order to decrease the execution time.
     Arguments:
-        - diagD: diagonal of the matriz 
+        - diagD: diagonal of the matrix 
         - subdiagL: subdiagonal of the coefficient matrix
         - b: independent array
     Returns:
@@ -168,11 +178,6 @@ def triDiagSolveLinearSystem(diagD, subdiagL, b):
     """
 
     n = diagD.shape[0]
-
-                                                            # Now we can decompose A into 2 arrays: D and L
-                                                            # diagD will represent the diagonal on a diagonal matrix, D
-                                                            # subdiagL will represent the subdiagonal on a bidiagonal matrix L
-                                                            # A can be described by the multiplication L * D * Lt
 
     L = np.eye(n)         # Now we can generate the matrices to transform back the arrays to matrices
     D = np.zeros((n,n))
@@ -208,7 +213,7 @@ def triDiagSolveLinearSystem(diagD, subdiagL, b):
 
     return x
 
-# DONE - Working correctly.
+ 
 def solveLinearSystem(A, b):
     """
     Solves the linear system Ax = b.
@@ -242,7 +247,7 @@ def solveLinearSystem(A, b):
 
     return x
 
-# DONE - Working correctly.
+ 
 def buildNormalSystem(f, g):
     """
     Builds the normal system for the Least Squares Method. 
@@ -270,6 +275,16 @@ def buildNormalSystem(f, g):
     return A, b
 
 def quadraticError(uT, solutions, a):
+    """
+    Calculates the quadratic error for the distribution created by the linear combination,
+    comparing to the original distribution.
+    Arguments:
+    - uT: original distribution of the temperature.
+    - solutions: 2-D array with the partial distributions by each force r(t)ghk(x), u_k.
+    - a: coefficients a_k attached to each u_k to generate the linear combination.
+    Returns:
+    - e2: quadratic error of the linear combination regarding the original distribution.
+    """
     N = uT.shape[0] + 1
     nf = solutions.shape[0]
     deltax = 1/N
@@ -362,6 +377,10 @@ def tempGraphs(u, arq=0):
 def printResults(p, a, e2=None):
     """
     Prints the results of the problem: each position pk and its corresponding coefficient ak.
+    Arguments:
+    - p: array containing the position of all the applied punctual forces.
+    - a: array containing the coefficients for each punctual force pk.
+    - e2: quadratic error attached to the linear combination.
     """
     print("|  k  |    pk    |       ak      |")
     print("|-----|----------|---------------|")
@@ -377,7 +396,7 @@ def printResults(p, a, e2=None):
 # 1.2 Iterative Methods
 # ---------------
 
-# DONE - Working correctly.
+ 
 def crankNicolson(u, T, pk, diagD, subdiagL):
     """
     The crank Nicolson method is described by equation (35) in the problem description.
@@ -392,6 +411,8 @@ def crankNicolson(u, T, pk, diagD, subdiagL):
           position xi and time tk
         - T: time interval
         - pk: point where the punctual force will be applied.
+        - diagD: diagonal of the matrix D, from the LDLt decomposition of matrix A. It'll be used to solve the linear systems.
+        - subdiagL: subdiagonal of the matrix L, from the LDLt decompostion of matrix A. It'll also be used to solve the linear systems
     """
     M = u.shape[0] - 1
     N = u.shape[1] - 1
@@ -503,7 +524,7 @@ elif option == 'c' or option == 'd':
 
     if option == 'd':
         for k in range(uT.shape[0]):
-            r = 2*rd.random() - 0.5
+            r = 2*(rd.random() - 0.5)
             noise = 1 + r*0.01
             uT[k] = uT[k]*noise
 
@@ -528,11 +549,10 @@ elif option == 'c' or option == 'd':
 
     printResults(p, a, e2)
     solutionsGraphs(solutions)      # Plotting the solutions graph
-    tempGraphs(uTFile[1:-1], 1)        # Plotting the graph from the file, with all the points
     tempGraphs(uT, 1)                  # Plotting the graph from the file, with the proper points due to N being different than 2048
 
     uTcoef = sum(a[k]*solutions[k] for k in range(nf)) # Linear combination of the solutions
-    tempGraphs(uTcoef)
+    tempGraphs(uTcoef)          # Plotting the linear combination graph
 else: 
     print("Invalid option.")
 
