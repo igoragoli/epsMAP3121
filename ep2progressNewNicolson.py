@@ -19,7 +19,6 @@ from progress.bar import Bar
 # 1.1 Functions
 # ---------------
 
- 
 def f(t, x, pk):
     """
     Describes heat sources through time applied at discrete points.
@@ -51,9 +50,11 @@ def triDiagLDLtDecomposition(diagonalA, subdiagonalA):
         - Larr: array that represents the subdiagonal of the L matrix
         - Darr: array that represents the diagonal of the D matrix
     """
-    n = diagonalA.shape[0]   # First of all, we need to determine the size of the matrices, which is going to be the same as the size of matrix A
+    n = diagonalA.shape[0]   # First of all, we need to determine the size of the matrices, 
+                             # which is going to be the same as the size of matrix A
 
-    A = np.eye(n)   # To use the algorithm, it's necessary to transform the arrays back to matrices.
+    A = np.eye(n)   # To use the algorithm, it's necessary to transform the arrays back to 
+                    # matrices.
 
     for i in range(n):
       A[i, i] = diagonalA[i]
@@ -65,22 +66,27 @@ def triDiagLDLtDecomposition(diagonalA, subdiagonalA):
     # Now we have the original A matrix, which we can use for the decomposition.
 
     L = np.eye(n)   # We inicially generate an identity matrix as the L matrix.
-                    # Since the L matrix is going to be a lower diagonal matrix, all the elements in its diagonal are 1.
+                    # Since the L matrix is going to be a lower diagonal matrix, all the elements 
+                    # in its diagonal are 1.
 
     D = np.zeros((n,n)) # D is inicially adopted as a zero matrix, because it's a diagonal matrix, so only the elements
                         # that are in the diagonal can be different from zero.
 
-    D[0, 0] = A[0, 0] # The first element of the diagonal from the D matrix is identical to the first diagonal element from A.
+    D[0, 0] = A[0, 0] # The first element of the diagonal from the D matrix is identical to the 
+                      # first diagonal element from A.
 
-    # We can apply the Cholesky Decomposition to decompose a matrix "A" in two matrices "D" and "L", where A = L*D*Lt
-    # The algorithm originally applies to a L*Lt decomposition, but there is an alternative form that generates a "D" matrix as well.
+    # We can apply the Cholesky Decomposition to decompose a matrix "A" in two matrices "D" and 
+    # "L", where A = L*D*Lt. The algorithm originally applies to a L*Lt decomposition, but there 
+    # is an alternative form that generates a "D" matrix as well.
 
-    for i in range(0, n): # At column 0, the elements will be "A" from the same position divided by "D[0 ,0]", which was previously determined.
+    for i in range(0, n): # At column 0, the elements will be "A" from the same position divided 
+                          # by "D[0 ,0]", which was previously determined.
       L[i, 0] = float(A[i, 0]) / float(D[0, 0])
 
     bar = Bar("Decomposing matrix.", max=n) # This sets up a progress bar
     for i in range(1, n): # For the remaining rows, from 1 to n-1, we can apply the algorithm.
-      for j in range(1, i+1): # We need to apply it to every element, so it's necessary to apply to the columns from 1 to i (the diagonal).
+      for j in range(1, i+1): # We need to apply it to every element, so it's necessary to apply 
+                              # to the columns from 1 to i (the diagonal).
 
         D[j, j] = A[j, j] - sum((L[j, k] ** 2) * D[k, k] for k in range(0, j))
 
@@ -91,9 +97,11 @@ def triDiagLDLtDecomposition(diagonalA, subdiagonalA):
       bar.next()
     bar.finish()
     
-    Darr = np.zeros(n)    # Now we can generate the arrays that are going to describe the D and L matrices.
-    Larr = np.zeros(n)    # The size of Larr actually needs to be n-1, but we created it with size n because it's better for the loops.
-                          # So the element at index 0 at Larrn is going to be zero, and won't be used in the future.
+    # Creating the arrays that are going to describe the D and L matrices
+    Darr = np.zeros(n)
+    Larr = np.zeros(n)    # The size of Larr actually needs to be n-1, but we created it with size
+                          # n because it works better in the loops. The element at index 0 at 
+                          # Larrn is going to be zero, and won't be used in the future.
 
     for i in range(n):
       Darr[i] = D[i, i]
@@ -120,7 +128,8 @@ def generateMatrices(u):
     deltax = 1/N
     lbd = deltat/deltax**2 # Lambda
 
-    # Construct coefficient matrix A. A is symmetric and tridiagonal, so it can be represented as 2 arrays of size N-1
+    # Construct coefficient matrix A. A is symmetric and tridiagonal, so it can be represented 
+    # as 2 arrays of size N-1
     diagA = np.zeros(N-1)
     subdiagA = np.zeros(N-1)
 
@@ -129,18 +138,17 @@ def generateMatrices(u):
         if i != N - 2:
             subdiagA[i+1] = -lbd/2 # subdiagA will actually be used starting at index 1
     
+    # We can decompose A into 2 arrays: D and L diagD will represent the diagonal on a diagonal 
+    # matrix, D. subdiagL will represent the subdiagonal on a bidiagonal matrix L. A can be 
+    # described by the multiplication L * D * Lt. Since A is the same for each Nicolson 
+    # implementation, we can keep the LDLt decomposition. The only part that changes for each 
+    # linear system, in this method, is the "b" matrix.  
     print("Generating the LDLt Decomposition matrices.")
-    diagD, subdiagL = triDiagLDLtDecomposition(diagA, subdiagA) # We can decompose A into 2 arrays: D and L
-                                                                # diagD will represent the diagonal on a diagonal matrix, D
-                                                                # subdiagL will represent the subdiagonal on a bidiagonal matrix L
-                                                                # A can be described by the multiplication L * D * Lt
-                                                                # Since A is the same for each Nicolson implementation, we can keep the LDLt decomposition.
-                                                                # The only part that changes for each linear system, in this method, is the "b" matrix.  
+    diagD, subdiagL = triDiagLDLtDecomposition(diagA, subdiagA) 
     
     print("Matrices generated. Now, running Crank Nicolson's method.")
 
     return diagD, subdiagL
-
  
 def LDLtDecomposition(A):
     """
@@ -163,7 +171,6 @@ def LDLtDecomposition(A):
 
     D = np.eye(n) * D
     return (D, L)
-
  
 def triDiagSolveLinearSystem(diagD, subdiagL, b):
     """
@@ -179,7 +186,8 @@ def triDiagSolveLinearSystem(diagD, subdiagL, b):
 
     n = diagD.shape[0]
 
-    L = np.eye(n)         # Now we can generate the matrices to transform back the arrays to matrices
+    L = np.eye(n) # Now we can generate the matrices to transform back the arrays 
+                  # to matrices
     D = np.zeros((n,n))
 
     for i in range(n):
@@ -190,7 +198,7 @@ def triDiagSolveLinearSystem(diagD, subdiagL, b):
 
     Lt = L.transpose()   # And we create the Lt matrix as well, which is the transposed L matrix
 
-    # To find a solution for LDLt * x = b, we need to solve the system by parts
+    # To find a solution for LDLt * x = b, we need to solve the system by parts.
     # First, we let y = Lt*x, and then we need to solve (L*D) * y = b
 
     LD = np.dot(L, D)
@@ -213,7 +221,6 @@ def triDiagSolveLinearSystem(diagD, subdiagL, b):
 
     return x
 
- 
 def solveLinearSystem(A, b):
     """
     Solves the linear system Ax = b.
@@ -247,7 +254,6 @@ def solveLinearSystem(A, b):
 
     return x
 
- 
 def buildNormalSystem(f, g):
     """
     Builds the normal system for the Least Squares Method. 
@@ -277,7 +283,7 @@ def buildNormalSystem(f, g):
 def quadraticError(uT, solutions, a):
     """
     Calculates the quadratic error for the distribution created by the linear combination,
-    comparing to the original distribution.
+    comparing to the temperature distribution given by the file.
     Arguments:
     - uT: original distribution of the temperature.
     - solutions: 2-D array with the partial distributions by each force r(t)ghk(x), u_k.
@@ -349,8 +355,7 @@ def solutionsGraphs(solutions):
     solucoes = "solucaoN=" + str(N) + "nf=" + str(nf) + ".png"
     fig.savefig(solucoes)
     plt.show()
-
-    
+   
 def tempGraphs(u, arq=0):
     """
     Print the final graph of the temperature of the bar by x (from 0 to 1).
@@ -395,7 +400,6 @@ def printResults(p, a, e2=None):
 # ---------------
 # 1.2 Iterative Methods
 # ---------------
-
  
 def crankNicolson(u, T, pk, diagD, subdiagL):
     """
@@ -435,6 +439,23 @@ def crankNicolson(u, T, pk, diagD, subdiagL):
 
     return u  
 
+# ---------------
+# 1.2 Miscellaneous
+# --------------- 
+
+def printQuote():
+    n = rd.randrange(4)
+    if n == 0:
+        print("\"All we have to decide is what to do with the time that is given us.\"\n\t-Gandalf")
+    elif n == 1:
+        print()
+    elif n == 2:
+        print()
+    elif n == 3:
+        print()
+    elif n == 4:
+        print()
+
 # =================================
 # 2 Simulations
 # =================================
@@ -450,6 +471,8 @@ print("|              MAP3121 - EP2             |")
 print("|               Simulations!             |")
 print("|________________________________________|")
 print()
+
+printQuote()
 
 print()
 print("Options: ")
@@ -548,11 +571,11 @@ elif option == 'c' or option == 'd':
     e2 = quadraticError(uT, solutions, a)
 
     printResults(p, a, e2)
-    solutionsGraphs(solutions)      # Plotting the solutions graph
-    tempGraphs(uT, 1)                  # Plotting the graph from the file, with the proper points due to N being different than 2048
+    solutionsGraphs(solutions) # Plotting the solutions graph
+    tempGraphs(uT, 1)          # Plotting the graph from the file, with the proper points due to N being different than 2048
 
     uTcoef = sum(a[k]*solutions[k] for k in range(nf)) # Linear combination of the solutions
-    tempGraphs(uTcoef)          # Plotting the linear combination graph
+    tempGraphs(uTcoef) # Plotting the linear combination graph
 else: 
     print("Invalid option.")
 
