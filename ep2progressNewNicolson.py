@@ -444,17 +444,13 @@ def crankNicolson(u, T, pk, diagD, subdiagL):
 # --------------- 
 
 def printQuote():
-    n = rd.randrange(4)
+    n = rd.randrange(3)
     if n == 0:
-        print("\"All we have to decide is what to do with the time that is given us.\"\n\t-Gandalf")
+        print("\"All we have to decide is what to do with the time that is given us.\"\n\t- Gandalf")
     elif n == 1:
-        print()
+        print("\"The impediment to action advances action. What stands in the way becomes the way\"\n\t- Marcus Aurelius")
     elif n == 2:
-        print()
-    elif n == 3:
-        print()
-    elif n == 4:
-        print()
+        print("\"Do. Or do not. There is no try.\n\t- Yoda")
 
 # =================================
 # 2 Simulations
