@@ -1,0 +1,84 @@
+####################################################
+# EP1 de MAP3121 - Metodos Numericos e Aplicacoes  #
+# Docente: André Salles de Carvalho                #
+# Turma: 3                                         #
+# Igor Augusto Gomes de Oliveira - 10773270        #
+# Igor Nunes Ferro               - 10774138        #
+####################################################
+
+Bem-vindo ao nosso EP1 de MAP3121!
+
+IMPORTANTE: Existem duas versões do EP: "ep1.py" e "ep1progress.py". 
+"ep1" não utiliza a biblioteca "progress", enquanto "ep1progress" 
+a utiliza. Recomendamos fortemente a instalação dessa biblioteca. 
+Com ela, barras de progresso para os métodos numéricos e outros 
+cálculos são exibidas, facilitando a utilização do programa.
+
+1 Instruções de compilação
+    
+    - Utilize Python 3.8.2 ou versão mais atual.
+    - Instale as seguintes bibliotecas: 
+        - numpy
+        - matplotlib
+        - progress (somente se for utilizar "ep1progress.py")
+        
+2 Instruções de execução
+
+    A execução do programa acontece da seguinte maneira:
+    
+    i. Entradas T, N e M são solicitadas ao usuário. T é o intervalo 
+    de tempo estudado. N é o número de divisões que serão feitas na 
+    posição, e M é o número de divisões que serão feitas no tempo.
+    
+    ii. Entradas para a seleção de f(t,x) e das outras condições
+    serão solicitadas ao usuário. Será exibida a tabela abaixo, com os
+    "tipos" de cada função, e a que item do enunciado elas correspondem.
+
+    Types :           '0'               |                          '1'                             
+    ------------------------------------|----------------------------------------------------------
+    f(t,x): 10x^2(x-1) - 60xt + 20t (a1)|     5e^(t - x)*(5t^2*cos(5tx) - sin(5tx)*(x + 2t))    (b)
+    u0(x) :            0         (a1, c)|                         e^(-x)                        (b)
+    g1(t) :            0     (a1, a2, c)|                         e^(t)                         (b)
+    g2(t) :            0     (a1, a2, c)|                         e^(t-1)                       (b)
+
+    Types :             '2'             |                          '3'                             
+    ------------------------------------|----------------------------------------------------------
+    f(t,x):   source at p = 0.25 (c)    | 10cos(10t)x^2(1-x)^2-(1 + sin(10t))(12x^2 - 12x + 2) (a2)
+    u0(x) :             N.A.            |                      x^2(1-x)^2                      (a2)
+    g1(t) :             N.A.            |                         N.A.                            
+    g2(t) :             N.A.            |                         N.A.                             
+
+        Vamos supor que você queira escolher a função do item "b". Você 
+    deve, então, entrar com a sequência <1,1,1,1>. Caso queira a segunda
+    função do item "a", você deve entrar com a sequência <3,3,0,0>.
+
+    iii. O usuário deverá escolher o método de solução numérica para a
+    resolução do problema. Será exibida a tabela abaixo, com os códigos
+    correspondentes a cada método.
+
+    Method Number |     Method    
+    --------------|-----------------
+          0       | explicitFD()    
+          1       | implicitEuler() 
+          2       | crankNicolson() 
+
+        Por exemplo, caso queira escolher o método explícito de di-
+    ferenças finitas, você deve entrar com <0>. Caso queira o método
+    de Crank-Nicolson, você deve entrar com <2>. 
+
+    iv. O programa executará o método escolhido com as condições es-
+    colhidas. 
+    
+    v. Em seguida, serão exibidos os gráficos da evolução da 
+    temperatura, com intervalos de 0,1 para o tempo, e o gráfico da 
+    temperatura final, em t = T. Esses dois gráficos serão salvos em
+    dois arquivos .png. Para que o programa continue a sua execução, 
+    é necessário fechar os gráficos!
+
+    vi. A norma do erro absoluto em t = T e a norma do erro de trun-
+    camento para todo (tk, xi) serão calculadas.
+    
+    vii. As normas calculadas serão exibidas ao usuário, caso exista 
+    solução exata para a situação escolhida. Além disso, essas normas 
+    serão salvas em um arquivo erros.txt, para que a visualização das 
+    normas dos erros de várias execuções do programa seja mais fácil.
