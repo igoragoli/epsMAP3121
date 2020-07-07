@@ -9,7 +9,7 @@
 Bem-vindo ao nosso EP2 de MAP3121!
 
 IMPORTANTE: Existem duas versões do EP: "ep2.py" e "ep2progress.py". 
-"ep2" não utiliza a biblioteca "progress", enquanto "ep2progress" 
+"ep2.py" não utiliza a biblioteca "progress", enquanto "ep2progress.py" 
 a utiliza. Recomendamos fortemente a instalação dessa biblioteca. 
 Com ela, barras de progresso para os métodos numéricos e outros 
 cálculos são exibidas, facilitando a utilização do programa.
@@ -46,19 +46,18 @@ cálculos são exibidas, facilitando a utilização do programa.
 
       Please input the letter corresponding to your choice: "
     
-    ii. Caso o usuário escolha os itens a e b, já será rodado automaticamente, 
+    ii. Caso o usuário escolha os itens a e b, a execução será feita automaticamente, 
         não necessitando de mais nenhuma entrada. Caso sejam escolhidos 
         os itens c e d, será pedido o N que o usuário deseja escolher.
 
-    iii. O programa executará o caso escolhido com as condições es-
-    colhidas, se houver. 
+    iii. O programa executará o caso escolhido. 
     
     iv. Após a execução, os coeficientes ak calculados, respectivos para cada fonte em pk, 
-       serão impressos para o usuário. Além disso, para os itens c e d serão impressos os erros quadráticos.
+        serão impressos para o usuário. Além disso, para os itens c e d serão impressos os erros quadráticos.
 
-    v. Em seguida, caso tenham sido escolhidos os casos a ou b, serão exibidos os 
-    gráficos das distribuições parciais para cada fonte de temperatura e o 
-    gráfico da temperatura final na barra proveniente da combinação linear, respectivamente. 
+    v.  Em seguida, caso tenham sido escolhidos os casos a ou b, serão exibidos os 
+        gráficos das distribuições parciais para cada fonte de temperatura e o 
+        gráfico da temperatura final na barra proveniente da combinação linear, respectivamente. 
        
     Caso tenham sido escolhidos os casos c ou d, serão exibidos os gráficos
     das distribuições parciais para cada fonte de temperatura, o gráfico dos

@@ -9,7 +9,6 @@
 import random as rd
 import numpy as np
 import matplotlib.pyplot as plt
-from progress.bar import Bar
 
 # =================================
 # 1 Functions and Iterative Methods
@@ -83,7 +82,6 @@ def triDiagLDLtDecomposition(diagonalA, subdiagonalA):
                           # by "D[0 ,0]", which was previously determined.
       L[i, 0] = float(A[i, 0]) / float(D[0, 0])
 
-    bar = Bar("Decomposing matrix.", max=n) # This sets up a progress bar
     for i in range(1, n): # For the remaining rows, from 1 to n-1, we can apply the algorithm.
       for j in range(1, i+1): # We need to apply it to every element, so it's necessary to apply 
                               # to the columns from 1 to i (the diagonal).
@@ -94,8 +92,6 @@ def triDiagLDLtDecomposition(diagonalA, subdiagonalA):
           L[i, j] = (1/D[j, j]) * (A[i, j] - sum(L[i, k]*L[j, k]*D[k, k] for k in range(0, j)))
                                   # Since there are no elements different from one in the diagonal at matrix L, the elements
                                   # of L will be only calculated with i > j.
-      bar.next()
-    bar.finish()
     
     # Creating the arrays that are going to describe the D and L matrices
     Darr = np.zeros(n)
@@ -424,7 +420,6 @@ def crankNicolson(u, T, pk, diagD, subdiagL):
     deltax = 1/N
     lbd = deltat/deltax**2 # Lambda
 
-    bar = Bar("Running crankNicolson()", max=M) # This sets up a progress bar
     b = np.zeros((N-1))
     
     for k in range(0, M):
@@ -433,9 +428,6 @@ def crankNicolson(u, T, pk, diagD, subdiagL):
             b[i] = u[k, i+1]*(1-lbd) + lbd/2*(u[k, i]+u[k, i+2]) + (deltat/2)*(f(k*deltat, (i+1)*deltax, pk)+f((k+1)*deltat,(i+1)*deltax, pk)) 
         b[N-2] = u[k, N-1]*(1-lbd) + lbd/2*(u[k, N-2]) + deltat/2*(f(k*deltat, (N-1)*deltax, pk) + f((k+1)*deltat, (N-1)*deltax, pk))
         u[k+1, 1:N] = triDiagSolveLinearSystem(diagD, subdiagL, b)
-
-        bar.next()
-    bar.finish()
 
     return u  
 
